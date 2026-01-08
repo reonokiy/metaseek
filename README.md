@@ -172,6 +172,161 @@ cargo test
 RUST_LOG=debug cargo run
 ```
 
+## Feature Parity with SearXNG
+
+This table compares the features of searxng-rs with the original [SearXNG](https://github.com/searxng/searxng) Python implementation.
+
+### Search Engines
+
+| Category | searxng-rs | SearXNG |
+|----------|-----------|---------|
+| Total Engines | 9 | 215+ |
+| General Search | Google, Bing, DuckDuckGo, Brave, Wikipedia | Google, Bing, Brave, DuckDuckGo, Yandex, Qwant, Startpage, Yahoo, and many more |
+| Images | - | Google Images, Bing Images, Flickr, Unsplash, Pixabay, DeviantArt, and more |
+| Videos | YouTube | YouTube, Dailymotion, Vimeo, PeerTube, Invidious, Bilibili, and more |
+| News | - | Google News, Bing News, Reuters, Yahoo News, and more |
+| Maps | - | OpenStreetMap, Apple Maps |
+| IT/Code | GitHub, Stack Overflow | GitHub, GitLab, Gitea, NPM, PyPI, Crates.io, Docker Hub, and more |
+| Science/Academic | arXiv | arXiv, Google Scholar, PubMed, Crossref, Semantic Scholar, and more |
+| Music | - | Bandcamp, SoundCloud, Spotify, Deezer, and more |
+| Torrents/Files | - | Pirate Bay, 1337x, KickAss, and more |
+| Books | - | Anna's Archive, Z-Library, OpenLibrary, Goodreads |
+| Translation | - | DeepL, LibreTranslate, Lingva |
+| Shopping | - | eBay, Amazon integrations |
+
+### Output Formats
+
+| Format | searxng-rs | SearXNG |
+|--------|-----------|---------|
+| HTML | ✅ | ✅ |
+| JSON | ✅ | ✅ |
+| CSV | ✅ | ✅ |
+| RSS | ✅ | ✅ |
+
+### Plugins
+
+| Plugin | searxng-rs | SearXNG |
+|--------|-----------|---------|
+| Calculator | ✅ | ✅ |
+| Unit Converter | ✅ | ✅ |
+| Hash Generator | ✅ | ✅ |
+| Tracker URL Remover | ✅ | ✅ |
+| Self Info | - | ✅ |
+| Ahmia Filter | - | ✅ |
+| Hostnames Rewrite | - | ✅ |
+| Time Zone | - | ✅ |
+| Tor Check | - | ✅ |
+| Infinite Scroll | - | ✅ |
+| OA DOI Rewrite | - | ✅ |
+
+### Autocomplete Backends
+
+| Backend | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| DuckDuckGo | ✅ | ✅ |
+| Google | ✅ | ✅ |
+| Wikipedia | ✅ | ✅ |
+| Brave | ✅ | ✅ |
+| Qwant | ✅ | ✅ |
+| Other backends | - | 10+ more |
+
+### Query Syntax
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| Language filter (`:en`) | ✅ | ✅ |
+| Engine bangs (`!google`) | ✅ | ✅ |
+| Category bangs (`!images`) | ✅ | ✅ |
+| External bangs (`!g`, `!yt`) | ✅ | ✅ |
+| Timeout control (`<10`) | ✅ | - |
+| Safe search toggle | ✅ | ✅ |
+| Time range (`!day`, `!week`) | ✅ | ✅ |
+| First result redirect (`!!`) | ✅ | ✅ |
+
+### Privacy Features
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| No user tracking | ✅ | ✅ |
+| Tracker URL removal | ✅ | ✅ |
+| Image proxy | ✅ | ✅ |
+| No referrer headers | ✅ | ✅ |
+| Tor support | - | ✅ |
+| Alternative frontend redirects | - | ✅ |
+| POST method option | - | ✅ |
+
+### UI & Themes
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| Themes | 1 (default) | Multiple (simple with auto/light/dark/black) |
+| Responsive design | ✅ | ✅ |
+| Preferences page | ✅ | ✅ |
+| Statistics page | ✅ | ✅ |
+| Hotkeys | - | ✅ (default + vim mode) |
+| Infinite scroll | - | ✅ |
+
+### Localization
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| Languages supported | 3 (en, de, fr) | 30+ |
+| RTL language support | - | ✅ |
+| Browser language detection | ✅ | ✅ |
+
+### Configuration
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| YAML config file | ✅ | ✅ |
+| Environment variables | ✅ | ✅ |
+| Per-engine settings | ✅ | ✅ |
+| Rate limiting | ✅ | ✅ |
+| Redis/Valkey support | Partial | ✅ |
+
+### API & Monitoring
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| Health endpoint | ✅ | ✅ |
+| Statistics endpoint | ✅ | ✅ |
+| Engine metrics | ✅ | ✅ |
+| OpenMetrics export | - | ✅ |
+| Engine checker | - | ✅ |
+
+### Result Types
+
+| Type | searxng-rs | SearXNG |
+|------|-----------|---------|
+| Default (web) | ✅ | ✅ |
+| Images | ✅ | ✅ |
+| Videos | ✅ | ✅ |
+| News | ✅ | ✅ |
+| Maps | ✅ | ✅ |
+| Files | ✅ | ✅ |
+| Code | ✅ | ✅ |
+| Papers | ✅ | ✅ |
+| Infoboxes | ✅ | ✅ |
+| Answers (instant) | ✅ | ✅ |
+
+### Performance
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| Async runtime | ✅ (Tokio) | ✅ (asyncio) |
+| Connection pooling | ✅ | ✅ |
+| Result caching | ✅ (Moka) | ✅ (Valkey/Redis) |
+| Gzip/Brotli compression | ✅ | ✅ |
+| HTTP/2 support | ✅ | ✅ |
+
+### Deployment
+
+| Feature | searxng-rs | SearXNG |
+|---------|-----------|---------|
+| Docker images | ✅ (multi-arch) | ✅ |
+| Single binary | ✅ | - (Python) |
+| Memory footprint | Low | Higher |
+
 ## License
 
 AGPL-3.0 - See [LICENSE](LICENSE) for details.

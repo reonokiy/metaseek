@@ -1,0 +1,504 @@
+# SearXNG-RS Configuration Template
+# ================================
+#
+# This file contains default configurations for all 45+ search engines.
+# Engines marked with "default_enabled: true" are enabled by default.
+# Engines requiring API keys must be manually enabled.
+#
+# Configuration locations (checked in order):
+# 1. $SEARXNG_SETTINGS_PATH environment variable
+# 2. ./config/settings.yml
+# 3. ./settings.yml
+# 4. /etc/searxng/settings.yml
+# 5. ~/.config/searxng-rs/settings.yml
+
+general:
+  debug: false
+  instance_name: "SearXNG-RS"
+  enable_metrics: true
+  default_theme: simple
+
+search:
+  safe_search: 0 # 0=None, 1=Moderate, 2=Strict
+  autocomplete: "duckduckgo"
+  default_lang: "auto"
+  # Timeouts for individual engines (in seconds)
+  timeout: 5.0
+
+server:
+  port: 8888
+  bind_address: "127.0.0.1"
+  secret_key: "change-me-in-production-use-randgen"
+
+# Engine Categories
+# =================
+#
+# General Search (6 engines)
+# Academic/Research (7 engines)
+# Code/Development (15 engines)
+# OS Packages (5 engines)
+# News/Media (5 engines)
+# Corporate/Business (4 engines)
+# Security (2 engines)
+
+engines:
+  # ========== GENERAL SEARCH ==========
+
+  # Google - Full search engine
+  - name: google
+    engine: google
+    shortcut: g
+    default_enabled: true
+    categories: general,web
+
+  # Google Images - Image search
+  - name: google_images
+    engine: google_images
+    shortcut: gi
+    default_enabled: false
+    categories: images
+
+  # Google News - News aggregation
+  - name: google_news
+    engine: google_news
+    shortcut: gn
+    default_enabled: false
+    categories: news
+
+  # Bing - Microsoft search engine
+  - name: bing
+    engine: bing
+    shortcut: bi
+    default_enabled: true
+    categories: general,web
+
+  # Bing Images - Image search
+  - name: bing_images
+    engine: bing_images
+    shortcut: bi
+    default_enabled: false
+    categories: images
+
+  # DuckDuckGo - Privacy-focused search
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+    default_enabled: true
+    categories: general,web
+
+  # Brave - Privacy-focused search
+  - name: brave
+    engine: brave
+    shortcut: br
+    default_enabled: false
+    categories: general,web
+
+  # Wikipedia - Encyclopedia
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    default_enabled: true
+    categories: general,web
+
+  # YouTube - Video search
+  - name: youtube
+    engine: youtube
+    shortcut: yt
+    default_enabled: false
+    categories: videos
+
+  # ========== ACADEMIC & RESEARCH ==========
+
+  # arXiv - Preprint server
+  - name: arxiv
+    engine: arxiv
+    shortcut: ax
+    default_enabled: true
+    categories: science,scientific publications
+
+  # Semantic Scholar - AI-driven academic search
+  - name: semantic_scholar
+    engine: semantic_scholar
+    shortcut: ss
+    default_enabled: true
+    categories: science,scientific publications,academic
+
+  # OpenAlex - Open research metadata
+  - name: openalex
+    engine: openalex
+    shortcut: oa
+    default_enabled: true
+    categories: science,scientific publications,academic
+    # Recommended: join the polite pool with your email
+    # mailto: "your_email@example.com"
+
+  # Crossref - Scholarly metadata & DOI
+  - name: crossref
+    engine: crossref
+    shortcut: cr
+    default_enabled: true
+    categories: science,scientific publications,academic
+
+  # Google Scholar - Academic paper search
+  - name: google_scholar
+    engine: google_scholar
+    shortcut: gs
+    default_enabled: true
+    categories: science,scientific publications,academic
+
+  # PubMed - Biomedical literature
+  - name: pubmed
+    engine: pubmed
+    shortcut: pub
+    default_enabled: true
+    categories: science,scientific publications,medical
+
+  # Protein Data Bank - 3D structural biology
+  - name: pdbe
+    engine: pdbe
+    shortcut: pdb
+    default_enabled: true
+    categories: science,biology,chemistry
+
+  # BASE - Academic web resources
+  - name: base
+    engine: base
+    shortcut: base
+    default_enabled: true
+    categories: science,academic,research
+
+  # SCANR Structures - French academic structures
+  - name: scanr_structures
+    engine: scanr_structures
+    shortcut: scanr
+    default_enabled: false
+    categories: science,academic
+
+  # NVD - Security vulnerabilities
+  - name: nvd
+    engine: nvd
+    shortcut: nvd
+    default_enabled: true
+    categories: it,security,vulnerabilities
+
+  # Hugging Face - ML models & datasets
+  - name: huggingface
+    engine: huggingface
+    shortcut: hf
+    default_enabled: true
+    categories: it,ai,machine learning
+
+  # Ollama - Local LLM models
+  - name: ollama
+    engine: ollama
+    shortcut: ol
+    default_enabled: false
+    categories: it,ai,machine learning
+
+  # ========== CODE & DEVELOPMENT ==========
+  # GitHub - Code hosting
+  # Optional: Add API key for higher rate limits (60->5000 requests/hour)
+  - name: github
+    engine: github
+    shortcut: gh
+    default_enabled: true
+    categories: it,code,software
+    # Uncomment and configure when you have API key:
+    # api_key: "your_github_api_token"
+
+  # GitLab - Git hosting & CI/CD
+  # Optional: Add API key for private instance access and higher rate limits
+  - name: gitlab
+    engine: gitlab
+    shortcut: gl
+    default_enabled: true
+    categories: it,code,software
+    # Uncomment and configure when you have API key:
+    # api_key: "your_gitlab_private_token"
+
+  # Gitea - Self-hosted Git platform
+  - name: gitea
+    engine: gitea
+    shortcut: gt
+    default_enabled: false
+    categories: it,code,software
+
+  # Stack Overflow - Programming Q&A
+  - name: stackoverflow
+    engine: stackoverflow
+    shortcut: so
+    default_enabled: true
+    categories: it,code,software
+
+  # Crates.io - Rust package registry
+  - name: crates
+    engine: crates
+    shortcut: crate
+    default_enabled: true
+    categories: it,packages,rust
+
+  # PyPI - Python package index
+  - name: pypi
+    engine: pypi
+    shortcut: pypi
+    default_enabled: true
+    categories: it,packages,python
+
+  # npm - JavaScript package registry
+  - name: npm
+    engine: npm
+    shortcut: npm
+    default_enabled: true
+    categories: it,packages,javascript
+
+  # hex.pm - Elixir/Erlang packages
+  - name: hex
+    engine: hex
+    shortcut: hex
+    default_enabled: false
+    categories: it,packages,elixir
+
+  # Docker Hub - Container registry
+  - name: docker_hub
+    engine: docker_hub
+    shortcut: docker
+    default_enabled: true
+    categories: it,packages,docker,containers
+
+  # pkg.go.dev - Go packages
+  - name: pkg_go_dev
+    engine: pkg_go_dev
+    shortcut: go
+    default_enabled: true
+    categories: it,packages,go
+
+  # FDroid - Android apps
+  - name: fdroid
+    engine: fdroid
+    shortcut: fdroid
+    default_enabled: false
+    categories: it,packages,android
+
+  # APKMirror - Android APKs
+  - name: apkmirror
+    engine: apkmirror
+    shortcut: apk
+    default_enabled: false
+    categories: it,packages,android
+
+  # MetaCPAN - Perl packages
+  - name: metacpan
+    engine: metacpan
+    shortcut: cpan
+    default_enabled: false
+    categories: it,packages,perl
+
+  # Lib.rs - Rust documentation
+  - name: lib_rs
+    engine: lib_rs
+    shortcut: librs
+    default_enabled: false
+    categories: it,documentation,rust
+
+  # Repology - Package tracker
+  - name: repology
+    engine: repology
+    shortcut: rep
+    default_enabled: true
+    categories: it,packages,linux
+
+  # ========== OPERATING SYSTEM PACKAGES ==========
+
+  # Arch Linux - Package search
+  - name: archlinux
+    engine: archlinux
+    shortcut: arch
+    default_enabled: true
+    categories: it,packages,linux
+
+  # Alpine Linux - Package search
+  - name: alpinelinux
+    engine: alpinelinux
+    shortcut: alpine
+    default_enabled: false
+    categories: it,packages,linux
+
+  # Void Linux - Package search
+  - name: voidlinux
+    engine: voidlinux
+    shortcut: void
+    default_enabled: false
+    categories: it,packages,linux
+
+  # CachyOS - Package search
+  - name: cachy_os
+    engine: cachy_os
+    shortcut: cachy
+    default_enabled: false
+    categories: it,packages,linux
+
+  # ========== NEWS & MEDIA ==========
+
+  # Reuters - Global news
+  - name: reuters
+    engine: reuters
+    shortcut: reuters
+    default_enabled: true
+    categories: news,media
+
+  # Bloomberg - Business news
+  - name: bloomberg
+    engine: bloomberg
+    shortcut: bloomberg
+    default_enabled: true
+    categories: news,business,financial
+
+  # AP News - Associated Press
+  - name: ap_news
+    engine: ap_news
+    shortcut: ap
+    default_enabled: true
+    categories: news,media
+
+  # Fortune 500 - Corporate rankings
+  - name: fortune500
+    engine: fortune500
+    shortcut: fortune
+    default_enabled: false
+    categories: news,business,corporate
+
+  # WSJ - Wall Street Journal
+  - name: wsj
+    engine: wsj
+    shortcut: wsj
+    default_enabled: false
+    categories: news,business,financial
+
+  # ========== CORPORATE & BUSINESS RESEARCH ==========
+
+  # OpenCorporates - Global corporate registry
+  - name: opencorporates
+    engine: opencorporates
+    shortcut: oc
+    default_enabled: true
+    categories: corporate,business,companies,entities
+
+  # IMDb - Movie & entertainment database
+  - name: imdb
+    engine: imdb
+    shortcut: imdb
+    default_enabled: false
+    categories: movies,corporate
+
+  # SEC EDGAR - US public company filings
+  - name: sec_edgar
+    engine: sec_edgar
+    shortcut: sec
+    default_enabled: true
+    categories: corporate,business,financial,sec,filings
+
+  # Crunchbase - Startup & VC data
+  - name: crunchbase
+    engine: crunchbase
+    shortcut: cb
+    default_enabled: true
+    categories: corporate,business,startups,investments
+
+  # LinkedIn Companies - Corporate profiles
+  # ⚠️ Requires LinkedIn API key - disable by default
+  - name: linkedin_companies
+    engine: linkedin_companies
+    shortcut: li
+    default_enabled: false
+    categories: corporate,business,companies
+    # Uncomment and configure when you have API key:
+    # api_key: "your_linkedin_api_key"
+
+  # ========== SECURITY & PRIVACY ==========
+
+  # Ahmia - Tor/.onion search
+  - name: ahmia
+    engine: ahmia
+    shortcut: ah
+    default_enabled: false
+    categories: general,tor,security
+
+  # SourceHut - Privacy-focused code hosting
+  - name: sourcehut
+    engine: sourcehut
+    shortcut: sh
+    default_enabled: false
+    categories: it,code,privacy
+
+# ========== AUTOCOMPLETE ==========
+# Autocomplete backends for search suggestions
+
+autocomplete:
+  engines:
+    - duckduckgo
+    - google
+    - wikipedia
+    - brave
+  default: duckduckgo
+
+# ========== PLUGIN CONFIGURATION ==========
+
+plugins:
+  # Calculator - Mathematical expressions
+  - calculator
+  # Unit converter - Physical quantities
+  - unit_converter
+  # Hash generator - MD5, SHA256, etc.
+  - hash_plugin
+  # Tracker remover - Strip tracking parameters
+  - tracker_remover
+
+# ========== RATE LIMITING ==========
+
+rate_limiting:
+  # Maximum requests per minute per IP
+  max_requests: 60
+  # Time window in seconds
+  window_seconds: 60
+
+# ========== CACHING ==========
+
+caching:
+  # Enable result caching
+  enabled: true
+  # Cache TTL in seconds
+  ttl: 3600
+  # Maximum cache size
+  max_size: 10000
+
+# ========== METRICS ==========
+
+metrics:
+  # Enable metrics collection
+  enabled: true
+  # Prometheus export endpoint
+  endpoint: /metrics
+  # Engine response time tracking
+  track_engine_times: true
+
+# ========== LOCALES ==========
+
+locales:
+  # Supported languages
+  enabled_locales:
+    - en
+    - de
+    - fr
+  # Default language
+  default: en
+
+# ========== DEFAULTS ==========
+
+# Default search parameters
+defaults:
+  # Safe search level (0=off, 1=moderate, 2=strict)
+  safesearch: 0
+  # Language (auto, en, de, fr, etc.)
+  language: auto
+  # Time range (day, week, month, year)
+  time_range:

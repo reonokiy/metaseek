@@ -1,11 +1,11 @@
 [package]
 name = "searxng-rs"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["SearXNG-RS Contributors"]
 description = "A privacy-respecting metasearch engine written in Rust"
 license = "AGPL-3.0"
-repository = "https://github.com/searxng/searxng-rs"
+repository = "https://github.com/sempervictus/searxng-rs"
 
 [dependencies]
 # Async runtime

@@ -1,3 +1,6 @@
 /target
 /reference
 /.idea
+
+# Stakpak session files
+.stakpak/session*

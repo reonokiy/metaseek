@@ -44,6 +44,26 @@ pub struct SearchResponse {
     pub suggestions: Vec<String>,
     pub infoboxes: Vec<serde_json::Value>,
     pub unresponsive_engines: Vec<String>,
+    pub engine_errors: Vec<EngineError>,
+}
+
+/// Engine error information
+#[derive(Debug, Serialize)]
+pub struct EngineError {
+    pub engine: String,
+    pub error: String,
+    pub error_type: ErrorType,
+}
+
+#[derive(Debug, Serialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum ErrorType {
+    ApiKeyRequired,
+    RateLimited,
+    NetworkError,
+    ParseError,
+    Timeout,
+    Other,
 }
 
 #[derive(Debug, Serialize)]
@@ -142,10 +162,38 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
         }
     }
 
+    // Log any engine errors for debugging
+    for unresponsive in results.get_unresponsive() {
+        tracing::warn!(
+            "Engine '{}' was unresponsive: {:?}",
+            unresponsive.name,
+            unresponsive.error
+        );
+    }
+
     // Format response based on requested format
     match params.format.as_deref() {
         Some("json") => {
             let ordered = results.get_ordered_results();
+
+            // Convert unresponsive engines to detailed error information
+            let engine_errors: Vec<EngineError> = results
+                .get_unresponsive()
+                .iter()
+                .map(|ue| EngineError {
+                    engine: ue.name.clone(),
+                    error: ue.error.to_string(),
+                    error_type: match ue.error {
+                        crate::results::EngineError::MissingApiKey => ErrorType::ApiKeyRequired,
+                        crate::results::EngineError::RateLimited => ErrorType::RateLimited,
+                        crate::results::EngineError::NetworkError => ErrorType::NetworkError,
+                        crate::results::EngineError::ParseError => ErrorType::ParseError,
+                        crate::results::EngineError::Timeout => ErrorType::Timeout,
+                        _ => ErrorType::Other,
+                    },
+                })
+                .collect();
+
             let response = SearchResponse {
                 query: raw_query,
                 number_of_results: ordered.len(),
@@ -178,6 +226,7 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
                     .into_iter()
                     .map(|e| e.name)
                     .collect(),
+                engine_errors,
             };
             Json(response).into_response()
         }
@@ -214,6 +263,14 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
                 "categories",
                 &["general", "images", "videos", "news", "it", "science"],
             );
+
+            // Add engine errors to context for display
+            let engine_errors: Vec<(String, String)> = results
+                .get_unresponsive()
+                .iter()
+                .map(|ue| (ue.name.clone(), ue.error.to_string()))
+                .collect();
+            ctx.insert("engine_errors", &engine_errors);
 
             match state.templates.render_with_context("search.html", &ctx) {
                 Ok(html) => Html(html).into_response(),

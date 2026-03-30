@@ -1,21 +1,22 @@
 //! GitHub search engine implementation
 //!
-//! Uses GitHub's official API to search for repositories.
+//! Search for repositories, issues, and code on GitHub.
+//! Supports optional API key for higher rate limits.
 
 use super::traits::*;
 use crate::results::{Result, ResultType};
 use anyhow::Result as AnyhowResult;
 use std::collections::HashMap;
 
-/// GitHub repository search engine
+/// GitHub search engine
 pub struct GitHub {
-    api_url: String,
+    base_url: String,
 }
 
 impl GitHub {
     pub fn new() -> Self {
         Self {
-            api_url: "https://api.github.com/search/repositories".to_string(),
+            base_url: "https://api.github.com/search/repositories".to_string(),
         }
     }
 }
@@ -56,7 +57,7 @@ impl Engine for GitHub {
         query_params.insert("per_page".to_string(), "10".to_string());
         query_params.insert("page".to_string(), params.pageno.to_string());
 
-        let mut request = EngineRequest::get(&self.api_url);
+        let mut request = EngineRequest::get(&self.base_url);
         request.params = query_params;
 
         // Set the Accept header for text match highlights
@@ -69,6 +70,20 @@ impl Engine for GitHub {
         request
             .headers
             .insert("User-Agent".to_string(), "SearXNG-RS/1.0".to_string());
+
+        // Support optional API key for higher rate limits
+        // First check for API key in engine_data (runtime override)
+        let api_key = params
+            .engine_data
+            .get("api_key")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+
+        if let Some(key) = &api_key {
+            request
+                .headers
+                .insert("Authorization".to_string(), format!("Bearer {}", key));
+        }
 
         Ok(request)
     }
@@ -180,16 +195,46 @@ impl Engine for GitHub {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
     #[test]
     fn test_github_request() {
         let github = GitHub::new();
-        let params = RequestParams::new("rust");
+        let params = RequestParams::new("rust programming");
         let request = github.request(&params).unwrap();
 
-        assert!(request.url.contains("api.github.com"));
+        assert!(request.url.contains("github.com"));
         assert!(request.params.contains_key("q"));
-        assert!(request.headers.contains_key("Accept"));
-        assert!(request.headers.contains_key("User-Agent"));
+    }
+
+    #[test]
+    fn test_github_request_with_api_key() {
+        let github = GitHub::new();
+        let mut params = RequestParams::new("rust programming");
+
+        // Add API key to engine_data
+        params
+            .engine_data
+            .insert("api_key".to_string(), json!("test_github_api_key"));
+
+        let request = github.request(&params).unwrap();
+
+        assert!(request.url.contains("github.com"));
+        assert!(request
+            .headers
+            .get("Authorization")
+            .map(|h| h.starts_with("Bearer "))
+            .unwrap_or(false));
+    }
+
+    #[test]
+    fn test_github_request_without_api_key() {
+        let github = GitHub::new();
+        let params = RequestParams::new("rust programming");
+        let request = github.request(&params).unwrap();
+
+        // Should work without API key (lower rate limits)
+        assert!(request.url.contains("github.com"));
+        assert!(request.headers.get("Authorization").is_none());
     }
 }

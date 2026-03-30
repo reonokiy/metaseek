@@ -130,6 +130,52 @@ pub struct ResultMetadata {
     pub audio_src: Option<String>,
     /// Is official result
     pub is_official: bool,
+    /// Version string
+    pub version: Option<String>,
+    /// License information
+    pub license: Option<String>,
+    /// Tags for categorization
+    pub tags: Option<Vec<String>>,
+    /// Source code URL
+    pub source_code: Option<String>,
+    /// SSH URL for repositories
+    pub ssh_url: Option<String>,
+    /// Homepage URL
+    pub homepage: Option<String>,
+    /// Documentation URL
+    pub documentation: Option<String>,
+    /// Last update timestamp
+    pub last_update: Option<String>,
+    /// Repository architecture
+    pub architecture: Option<String>,
+    /// Package name
+    pub package_name: Option<String>,
+    /// Star count
+    pub stars: Option<u64>,
+    /// Fork count
+    pub forks: Option<u64>,
+    /// Verified status
+    pub verified: Option<bool>,
+    /// Severity level (for security vulnerabilities)
+    pub severity: Option<String>,
+    /// CVSS score (for security vulnerabilities)
+    pub cvss_score: Option<f64>,
+    /// Modified date (for security vulnerabilities)
+    pub modified_date: Option<String>,
+    /// Archived status (for git repositories)
+    pub archived: Option<bool>,
+    /// Mirror status (for git repositories)
+    pub mirror: Option<bool>,
+    /// Trending score (for Hugging Face models)
+    pub trending_score: Option<f64>,
+    /// Machine learning library (for Hugging Face models)
+    pub library: Option<String>,
+    /// Pipeline type (for Hugging Face models)
+    pub pipeline: Option<String>,
+    /// Private status (for Hugging Face models)
+    pub private: Option<bool>,
+    /// Disabled status (for Hugging Face models)
+    pub disabled: Option<bool>,
 }
 
 /// Type of result
@@ -147,6 +193,8 @@ pub enum ResultType {
     Code,
     Answer,
     InfoBox,
+    Security,
+    Corporate,
 }
 
 /// An answer result (calculator, definition, etc.)
@@ -229,8 +277,10 @@ pub enum EngineError {
     AccessDenied,
     Captcha,
     TooManyRequests,
+    RateLimited,
     ServerError,
     Suspended,
+    MissingApiKey,
     Unknown,
 }
 
@@ -244,8 +294,10 @@ impl std::fmt::Display for EngineError {
             Self::AccessDenied => write!(f, "Access denied"),
             Self::Captcha => write!(f, "CAPTCHA required"),
             Self::TooManyRequests => write!(f, "Too many requests"),
+            Self::RateLimited => write!(f, "API rate limit exceeded"),
             Self::ServerError => write!(f, "Server error"),
             Self::Suspended => write!(f, "Engine suspended"),
+            Self::MissingApiKey => write!(f, "API key required but not configured"),
             Self::Unknown => write!(f, "Unknown error"),
         }
     }

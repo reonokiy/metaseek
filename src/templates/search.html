@@ -279,11 +279,44 @@
 {% if unresponsive_engines | length > 0 %}
 <div class="engine-errors">
     <h4>Some engines did not respond:</h4>
-    <p>
+
+    {% if unresponsive_engines | length > 0 %}
+    <p style="margin-bottom: 15px;">
+        Engines that failed to return results:
         {% for engine in unresponsive_engines %}
-        {{ engine.name }}{% if not loop.last %}, {% endif %}
+        <div style="margin-bottom: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+            <strong>{{ engine.name }}</strong>
+            <span style="color: var(--text-muted); margin-left: 10px;">
+                {{ engine.error }}
+            </span>
+            {% if "API key" in engine.error %}
+            <span style="color: #d9534f; margin-left: 10px; font-size: 0.85rem;">
+                (Configure API key in settings.yml or pass via request parameter)
+            </span>
+            {% endif %}
+        </div>
         {% endfor %}
     </p>
+    {% endif %}
+
+    {% if engine_errors | length > 0 %}
+    <p style="margin-bottom: 15px;">
+        Additional errors:
+        {% for error_tuple in engine_errors %}
+        <div style="margin-bottom: 8px; padding: 8px; background: var(--bg-secondary); border-radius: 4px;">
+            <strong>{{ error_tuple.0 }}</strong>
+            <span style="color: var(--text-muted); margin-left: 10px;">
+                {{ error_tuple.1 }}
+            </span>
+            {% if "API key" in error_tuple.1 %}
+            <span style="color: #d9534f; margin-left: 10px; font-size: 0.85rem;">
+                (Configure API key in settings.yml or pass via request parameter)
+            </span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </p>
+    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

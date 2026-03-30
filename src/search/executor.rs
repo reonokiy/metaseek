@@ -124,7 +124,23 @@ impl Search {
             engine_name, engine_timeout
         );
 
-        // Build request parameters
+        // Build request parameters with engine config merged into engine_data
+        // User-supplied API keys take priority over system defaults
+        let mut engine_data = query.engine_data.clone();
+
+        // Add API key from engine config only if not already provided by user
+        if !engine_data.contains_key("api_key") {
+            let engine_config = self.registry.get_config(&engine_name);
+            if let Some(config) = engine_config {
+                if let Some(ref api_key) = config.api_key {
+                    if !api_key.is_empty() {
+                        engine_data
+                            .insert("api_key".to_string(), serde_json::json!(api_key.clone()));
+                    }
+                }
+            }
+        }
+
         let params = RequestParams {
             query: query.query.clone(),
             pageno: query.pageno,
@@ -132,7 +148,7 @@ impl Search {
             safesearch: query.safesearch,
             time_range: query.time_range,
             category: engine_ref.category.clone(),
-            engine_data: HashMap::new(),
+            engine_data,
         };
 
         // Build the request
@@ -194,6 +210,10 @@ impl Search {
                         warn!("Failed to parse response from {}: {}", engine_name, e);
                         let error = if e.to_string().contains("CAPTCHA") {
                             EngineError::Captcha
+                        } else if e.to_string().contains("API key")
+                            || e.to_string().contains("requires an API key")
+                        {
+                            EngineError::MissingApiKey
                         } else {
                             EngineError::ParseError
                         };

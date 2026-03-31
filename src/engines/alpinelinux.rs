@@ -26,16 +26,13 @@ impl AlpineLinux {
         let mut results = Vec::new();
 
         // Selector for package rows
-        let result_selector = Selector::parse("table tbody tr")
-            .expect("Failed to parse selector");
+        let result_selector = Selector::parse("table tbody tr").expect("Failed to parse selector");
 
         let mut position = 1u32;
 
         for element in document.select(&result_selector) {
             // Get package name/link
-            let title_elem = element
-                .select(&Selector::parse("a").unwrap())
-                .next();
+            let title_elem = element.select(&Selector::parse("a").unwrap()).next();
 
             let title = match title_elem {
                 Some(elem) => elem.text().collect::<String>().trim().to_string(),

@@ -24,7 +24,7 @@ impl EngineLoader {
     /// All engines are loaded into the registry, but only engines that:
     /// 1. Are not explicitly disabled in config, AND
     /// 2. Don't require API keys or special configuration
-    /// will be enabled by default.
+    ///    will be enabled by default.
     pub fn load(settings: &Settings) -> Result<EngineRegistry> {
         let mut registry = EngineRegistry::new();
 

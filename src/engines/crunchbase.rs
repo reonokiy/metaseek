@@ -62,21 +62,21 @@ impl Crunchbase {
             let funding = element
                 .select(&scraper::Selector::parse(".funding-amount").unwrap())
                 .next()
-                .and_then(|f| Some(f.text().collect::<String>().trim().to_string()))
+                .map(|f| f.text().collect::<String>().trim().to_string())
                 .filter(|f: &String| !f.is_empty());
 
             // Get location
             let location = element
                 .select(&scraper::Selector::parse(".location").unwrap())
                 .next()
-                .and_then(|l| Some(l.text().collect::<String>().trim().to_string()))
+                .map(|l| l.text().collect::<String>().trim().to_string())
                 .filter(|l: &String| !l.is_empty());
 
             // Get company type
             let company_type = element
                 .select(&scraper::Selector::parse(".company-type").unwrap())
                 .next()
-                .and_then(|t| Some(t.text().collect::<String>().trim().to_string()))
+                .map(|t| t.text().collect::<String>().trim().to_string())
                 .filter(|t: &String| !t.is_empty());
 
             // Create result

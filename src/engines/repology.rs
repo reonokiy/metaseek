@@ -26,8 +26,8 @@ impl Repology {
         let mut results = Vec::new();
 
         // Selector for search results
-        let result_selector = Selector::parse("tr.packages-list__row")
-            .expect("Failed to parse selector");
+        let result_selector =
+            Selector::parse("tr.packages-list__row").expect("Failed to parse selector");
 
         let mut position = 1u32;
 

@@ -26,16 +26,14 @@ impl LibRs {
         let mut results = Vec::new();
 
         // Selector for search results
-        let result_selector = Selector::parse("li.search-result")
-            .expect("Failed to parse selector");
+        let result_selector =
+            Selector::parse("li.search-result").expect("Failed to parse selector");
 
         let mut position = 1u32;
 
         for element in document.select(&result_selector) {
             // Get title/link
-            let title_elem = element
-                .select(&Selector::parse("h4 a").unwrap())
-                .next();
+            let title_elem = element.select(&Selector::parse("h4 a").unwrap()).next();
 
             let title = match title_elem {
                 Some(elem) => elem.text().collect::<String>().trim().to_string(),

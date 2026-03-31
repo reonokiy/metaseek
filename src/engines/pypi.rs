@@ -33,9 +33,7 @@ impl PyPi {
 
         for element in document.select(&result_selector) {
             // Get title/link
-            let title_elem = element
-                .select(&Selector::parse("a").unwrap())
-                .next();
+            let title_elem = element.select(&Selector::parse("a").unwrap()).next();
 
             let title = match title_elem {
                 Some(elem) => elem.text().collect::<String>().trim().to_string(),

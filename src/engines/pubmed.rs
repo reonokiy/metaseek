@@ -1,7 +1,10 @@
 //! PubMed search engine implementation
 //!
-//! Search biomedical literature using the PubMed database.
-//! Reference: python-engines/pubmed.py
+//! Search biomedical literature using the PubMed database via NCBI eutils API.
+//! This is a multi-step engine that:
+//! 1. First searches for article PMIDs using esearch.fcgi
+//! 2. Then fetches detailed article information using efetch.fcgi
+//!    Reference: python-engines/pubmed.py
 
 use super::traits::*;
 use crate::results::{Result, ResultType};
@@ -9,18 +12,24 @@ use anyhow::Result as AnyhowResult;
 use std::collections::HashMap;
 
 /// PubMed biomedical literature search engine
+///
+/// This engine makes two API calls:
+/// 1. esearch.fcgi - to search and get PMIDs
+/// 2. efetch.fcgi - to fetch detailed article information
 pub struct PubMed {
-    base_url: String,
+    esearch_url: String,
+    efetch_url: String,
 }
 
 impl PubMed {
     pub fn new() -> Self {
         Self {
-            base_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi".to_string(),
+            esearch_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi".to_string(),
+            efetch_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi".to_string(),
         }
     }
 
-    /// Parse PubMed XML response
+    /// Parse PubMed efetch XML response to extract detailed article information
     fn parse_results(&self, xml_content: &str) -> Vec<Result> {
         let mut results = Vec::new();
         let mut position = 1u32;
@@ -266,10 +275,11 @@ impl Engine for PubMed {
     }
 
     fn request(&self, params: &RequestParams) -> AnyhowResult<EngineRequest> {
-        // PubMed uses eutils API
-        // First we do a search to get PMIDs, then fetch details
-        // For simplicity, we'll search directly
+        // PubMed uses eutils API in two steps:
+        // 1. esearch.fcgi - Search to get PMIDs
+        // 2. efetch.fcgi - Fetch detailed article information using PMIDs
 
+        // Step 1: Search for PMIDs using esearch.fcgi
         let mut query_params = HashMap::new();
         query_params.insert("db".to_string(), "pubmed".to_string());
         query_params.insert("term".to_string(), params.query.clone());
@@ -277,10 +287,10 @@ impl Engine for PubMed {
             "retstart".to_string(),
             ((params.pageno - 1) * 10).to_string(),
         );
-        query_params.insert("hits".to_string(), "10".to_string());
+        query_params.insert("retmax".to_string(), "10".to_string());
+        query_params.insert("retmode".to_string(), "xml".to_string());
 
-        let mut request =
-            EngineRequest::get("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi");
+        let mut request = EngineRequest::get(&self.esearch_url);
         request.params = query_params;
 
         Ok(request)
@@ -291,8 +301,41 @@ impl Engine for PubMed {
             return Err(anyhow::anyhow!("HTTP error: {}", response.status));
         }
 
-        // Parse XML response
-        let results = self.parse_results(&response.text);
+        // Step 1 complete: Parse esearch response to get PMIDs
+        let xml_content = &response.text;
+
+        // Extract PMIDs from esearch response
+        let pmids: Vec<String> = xml_content
+            .split("<Id>")
+            .skip(1) // Skip the first split (before any <Id>)
+            .take_while(|s| s.contains("</Id>"))
+            .map(|s| {
+                s.split("</Id>")
+                    .next()
+                    .map(|s| s.trim().to_string())
+                    .unwrap_or_default()
+            })
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        if pmids.is_empty() {
+            return Ok(EngineResults::new());
+        }
+
+        // Step 2: Fetch detailed article information using efetch.fcgi
+        let efetch_url = format!(
+            "{}?db={}&retmode={}&id={}",
+            self.efetch_url,
+            "pubmed",
+            "xml",
+            pmids.join(",")
+        );
+
+        // Step 2: Fetch detailed article information using efetch.fcgi
+        let efetch_text = reqwest::blocking::get(&efetch_url)?.text()?;
+
+        // Parse the detailed article information
+        let results = self.parse_results(&efetch_text);
 
         Ok(EngineResults::with_results(results))
     }
@@ -308,7 +351,7 @@ mod tests {
         let params = RequestParams::new("cancer research");
         let request = pubmed.request(&params).unwrap();
 
-        assert!(request.url.contains("eutils"));
+        assert!(request.url.contains("esearch"));
         assert!(request.url.contains("ncbi.nlm.nih.gov"));
         assert!(request.params.contains_key("term"));
         assert!(request.params.contains_key("db"));

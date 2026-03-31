@@ -56,10 +56,7 @@ impl OpenCorporates {
             }
 
             // Get URL
-            let url = format!(
-                "https://opencorporates.com/companies/{}",
-                company_number
-            );
+            let url = format!("https://opencorporates.com/companies/{}", company_number);
 
             // Get jurisdiction code
             let jurisdiction = item
@@ -118,7 +115,8 @@ impl OpenCorporates {
                     if let Some(existing) = result.metadata.tags.as_mut() {
                         existing.insert(0, format!("Jurisdiction: {}", jurisdiction));
                     } else {
-                        result.metadata.tags = Some(vec![format!("Jurisdiction: {}", jurisdiction)]);
+                        result.metadata.tags =
+                            Some(vec![format!("Jurisdiction: {}", jurisdiction)]);
                     }
                 }
             }
@@ -173,10 +171,7 @@ impl Engine for OpenCorporates {
         query_params.insert("page".to_string(), params.pageno.to_string());
 
         // Build search query
-        let query_body = format!(
-            r#"{{"query":"{}","format":"json"}}"#,
-            params.query
-        );
+        let query_body = format!(r#"{{"query":"{}","format":"json"}}"#, params.query);
         query_params.insert("q".to_string(), query_body);
 
         let mut request = EngineRequest::get(&self.base_url);

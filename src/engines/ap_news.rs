@@ -26,11 +26,12 @@ impl ApNews {
         let mut results = Vec::new();
 
         // Selector for news article items
-        let article_selector = Selector::parse(r#"div[data-testid="story-card"], article[class*="story"]"#)
-            .unwrap();
+        let article_selector =
+            Selector::parse(r#"div[data-testid="story-card"], article[class*="story"]"#).unwrap();
         let title_selector = Selector::parse(r#"h2, h3, [data-testid="headline"]"#).unwrap();
         let link_selector = Selector::parse(r#"a[href]"#).unwrap();
-        let snippet_selector = Selector::parse(r#"p[class*="excerpt"], [data-testid="summary"]"#).unwrap();
+        let snippet_selector =
+            Selector::parse(r#"p[class*="excerpt"], [data-testid="summary"]"#).unwrap();
 
         let mut position = 1u32;
 
@@ -144,7 +145,10 @@ impl Engine for ApNews {
 
         // Add headers to appear as a real browser
         request = request
-            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            .header(
+                "Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            )
             .header("Accept-Language", "en-US,en;q=0.5")
             .header("Accept-Encoding", "gzip, deflate, br");
 

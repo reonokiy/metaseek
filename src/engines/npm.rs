@@ -33,9 +33,7 @@ impl Npm {
 
         for element in document.select(&result_selector) {
             // Get title/link
-            let title_elem = element
-                .select(&Selector::parse("a").unwrap())
-                .next();
+            let title_elem = element.select(&Selector::parse("a").unwrap()).next();
 
             let title = match title_elem {
                 Some(elem) => elem.text().collect::<String>().trim().to_string(),
@@ -72,14 +70,19 @@ impl Npm {
 
             // Get downloads
             let downloads = element
-                .select(&Selector::parse("span[data-automation='package-result-downloads']").unwrap())
+                .select(
+                    &Selector::parse("span[data-automation='package-result-downloads']").unwrap(),
+                )
                 .next()
                 .and_then(|d| d.text().next())
                 .map(|s| s.to_string());
 
             // Get last updated
             let last_updated = element
-                .select(&Selector::parse("span[data-automation='package-result-last-updated']").unwrap())
+                .select(
+                    &Selector::parse("span[data-automation='package-result-last-updated']")
+                        .unwrap(),
+                )
                 .next()
                 .and_then(|d| d.text().next())
                 .map(|s| s.to_string());
@@ -119,25 +122,25 @@ impl Npm {
     /// Parse downloads string to u64
     fn parse_downloads(downloads: &str) -> Option<u64> {
         let downloads = downloads.trim();
-        
+
         if downloads.contains("k") || downloads.contains("K") {
             downloads
-                .trim_end_matches(|c| c == 'k' || c == 'K')
+                .trim_end_matches(['k', 'K'])
                 .parse::<f64>()
                 .ok()
-                .and_then(|v| Some((v * 1000.0) as u64))
+                .map(|v| (v * 1000.0) as u64)
         } else if downloads.contains("m") || downloads.contains("M") {
             downloads
-                .trim_end_matches(|c| c == 'm' || c == 'M')
+                .trim_end_matches(['m', 'M'])
                 .parse::<f64>()
                 .ok()
-                .and_then(|v| Some((v * 1_000_000.0) as u64))
+                .map(|v| (v * 1_000_000.0) as u64)
         } else if downloads.contains("b") || downloads.contains("B") {
             downloads
-                .trim_end_matches(|c| c == 'b' || c == 'B')
+                .trim_end_matches(['b', 'B'])
                 .parse::<f64>()
                 .ok()
-                .and_then(|v| Some((v * 1_000_000_000.0) as u64))
+                .map(|v| (v * 1_000_000_000.0) as u64)
         } else {
             downloads.parse().ok()
         }

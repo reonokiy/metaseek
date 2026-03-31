@@ -26,8 +26,8 @@ impl Fdroid {
         let mut results = Vec::new();
 
         // Selector for app results
-        let result_selector = Selector::parse("a.package-header")
-            .expect("Failed to parse selector");
+        let result_selector =
+            Selector::parse("a.package-header").expect("Failed to parse selector");
 
         let mut position = 1u32;
 
@@ -71,8 +71,7 @@ impl Fdroid {
                 .select(&Selector::parse("div.package-license").unwrap())
                 .next();
 
-            let license = license_elem
-                .map(|e| e.text().collect::<String>().trim().to_string());
+            let license = license_elem.map(|e| e.text().collect::<String>().trim().to_string());
 
             // Get thumbnail/icon
             let thumbnail_elem = element

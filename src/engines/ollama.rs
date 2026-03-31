@@ -26,8 +26,8 @@ impl Ollama {
         let mut results = Vec::new();
 
         // Selector for model results
-        let result_selector = Selector::parse("li[x-test-model]")
-            .expect("Failed to parse selector");
+        let result_selector =
+            Selector::parse("li[x-test-model]").expect("Failed to parse selector");
 
         let mut position = 1u32;
 
@@ -47,9 +47,7 @@ impl Ollama {
             }
 
             // Get URL
-            let url_elem = element
-                .select(&Selector::parse("a").unwrap())
-                .next();
+            let url_elem = element.select(&Selector::parse("a").unwrap()).next();
 
             let url = url_elem
                 .and_then(|e| e.value().attr("href"))
@@ -62,7 +60,9 @@ impl Ollama {
 
             // Get description
             let content = element
-                .select(&Selector::parse("p.max-w-lg.break-words.text-neutral-800.text-md").unwrap())
+                .select(
+                    &Selector::parse("p.max-w-lg.break-words.text-neutral-800.text-md").unwrap(),
+                )
                 .next()
                 .and_then(|c| c.text().next())
                 .map(|s| s.to_string());

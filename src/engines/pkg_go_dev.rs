@@ -137,25 +137,25 @@ impl PkgGoDev {
 
         if popularity.contains("K") || popularity.contains("k") {
             popularity
-                .trim_end_matches(|c| c == 'K' || c == 'k')
+                .trim_end_matches(['K', 'k'])
                 .replace(',', "")
                 .parse::<f64>()
                 .ok()
-                .and_then(|v| Some((v * 1000.0) as u64))
+                .map(|v| (v * 1000.0) as u64)
         } else if popularity.contains("M") || popularity.contains("m") {
             popularity
-                .trim_end_matches(|c| c == 'M' || c == 'm')
+                .trim_end_matches(['M', 'm'])
                 .replace(',', "")
                 .parse::<f64>()
                 .ok()
-                .and_then(|v| Some((v * 1_000_000.0) as u64))
+                .map(|v| (v * 1_000_000.0) as u64)
         } else if popularity.contains("B") || popularity.contains("b") {
             popularity
-                .trim_end_matches(|c| c == 'B' || c == 'b')
+                .trim_end_matches(['B', 'b'])
                 .replace(',', "")
                 .parse::<f64>()
                 .ok()
-                .and_then(|v| Some((v * 1_000_000_000.0) as u64))
+                .map(|v| (v * 1_000_000_000.0) as u64)
         } else {
             popularity.replace(',', "").parse().ok()
         }

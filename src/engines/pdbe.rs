@@ -72,10 +72,7 @@ impl PDBe {
             }
 
             // Build URL
-            let url = format!(
-                "https://www.ebi.ac.uk/pdbe/entry/pdb/{}",
-                pdb_id
-            );
+            let url = format!("https://www.ebi.ac.uk/pdbe/entry/pdb/{}", pdb_id);
 
             // Extract authors (first author from list)
             let authors = item

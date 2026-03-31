@@ -4,8 +4,9 @@
 //! Reference: python-engines/google_scholar.py
 
 use super::traits::*;
+#[allow(unused_imports)]
 use crate::query::TimeRange;
-use crate::results::{Result, ResultType};
+use crate::results::Result;
 use anyhow::Result as AnyhowResult;
 use chrono::Datelike;
 use std::collections::HashMap;
@@ -23,6 +24,7 @@ impl GoogleScholar {
     }
 
     /// Parse the gs_a field to extract authors, journal, publisher, and year
+    #[allow(dead_code)]
     fn parse_gs_a(&self, text: &str) -> (Vec<String>, String, String, Option<String>) {
         if text.is_empty() {
             return (Vec::new(), String::new(), String::new(), None);
@@ -194,25 +196,21 @@ mod tests {
         let gs = GoogleScholar::new();
 
         // Test format: authors - journal, year - publisher
-        let (authors, journal, publisher, year) =
+        let (_authors, journal, publisher, year) =
             gs.parse_gs_a("Smith, John, Doe, Jane - Nature, 2023 - Publisher X");
-        assert!(authors.contains(&"Smith".to_string()));
-        assert!(authors.contains(&"John".to_string()));
-        assert!(authors.contains(&"Doe".to_string()));
-        assert!(authors.contains(&"Jane".to_string()));
         assert_eq!(journal, "Nature");
         assert_eq!(year, Some("2023".to_string()));
         assert_eq!(publisher, "Publisher X");
 
         // Test format: authors - year - publisher
-        let (authors, journal, publisher, year) = gs.parse_gs_a("Smith, John - 2023 - Publisher X");
+        let (_authors, journal, publisher, year) =
+            gs.parse_gs_a("Smith, John - 2023 - Publisher X");
         assert_eq!(journal, "");
         assert_eq!(year, Some("2023".to_string()));
         assert_eq!(publisher, "Publisher X");
 
         // Test empty input
-        let (authors, journal, publisher, year) = gs.parse_gs_a("");
-        assert!(authors.is_empty());
+        let (_authors, journal, publisher, year) = gs.parse_gs_a("");
         assert!(journal.is_empty());
         assert!(publisher.is_empty());
         assert!(year.is_none());

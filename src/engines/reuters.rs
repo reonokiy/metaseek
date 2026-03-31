@@ -26,13 +26,14 @@ impl Reuters {
         let mut results = Vec::new();
 
         // Selector for news article cards
-        let article_selector =
-            Selector::parse(r#"div[data-testid="articleCard"], article[data-testid="articleCard"]"#)
-                .unwrap();
+        let article_selector = Selector::parse(
+            r#"div[data-testid="articleCard"], article[data-testid="articleCard"]"#,
+        )
+        .unwrap();
         let title_selector = Selector::parse(r#"h2, [data-testid="headline"]"#).unwrap();
         let link_selector = Selector::parse(r#"a[href]"#).unwrap();
-        let snippet_selector = Selector::parse(r#"p[data-testid="excerpt"], div[data-testid="description"]"#)
-            .unwrap();
+        let snippet_selector =
+            Selector::parse(r#"p[data-testid="excerpt"], div[data-testid="description"]"#).unwrap();
         let timestamp_selector = Selector::parse(r#"time, [data-testid="timestamp"]"#).unwrap();
 
         let mut position = 1u32;
@@ -157,7 +158,10 @@ impl Engine for Reuters {
 
         // Add headers to appear as a real browser
         request = request
-            .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+            .header(
+                "Accept",
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            )
             .header(
                 "Accept-Language",
                 "en-US,en;q=0.5,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",

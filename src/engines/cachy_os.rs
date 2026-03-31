@@ -70,10 +70,9 @@ impl CachyOS {
 
             // Get build date
             let build_date = item.get("pkg_builddate").and_then(|d| d.as_u64()).map(|d| {
-                let dt = chrono::DateTime::from_timestamp(d as i64, 0)
+                chrono::DateTime::from_timestamp(d as i64, 0)
                     .map(|dt| dt.to_string())
-                    .unwrap_or_default();
-                dt
+                    .unwrap_or_default()
             });
 
             // Build result URL

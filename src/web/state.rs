@@ -19,6 +19,21 @@ pub struct AppState {
     pub templates: Arc<super::Templates>,
     /// HTTP client for autocomplete and other requests
     pub http_client: Arc<HttpClient>,
+    /// Branding configuration
+    pub branding: Arc<Branding>,
+}
+
+/// Branding configuration for the search engine
+#[derive(Clone, Default)]
+pub struct Branding {
+    /// Company name
+    pub name: Option<String>,
+    /// Logo URL
+    pub logo: Option<String>,
+    /// Tagline or description
+    pub tagline: Option<String>,
+    /// Color scheme accent
+    pub accent_color: Option<String>,
 }
 
 impl AppState {
@@ -33,6 +48,7 @@ impl AppState {
         let http_client = Arc::new(client.clone());
         let search = Arc::new(Search::new(client, registry.clone()));
         let templates = Arc::new(super::Templates::new()?);
+        let branding = Arc::new(Branding::default());
 
         Ok(Self {
             settings,
@@ -40,6 +56,7 @@ impl AppState {
             search,
             templates,
             http_client,
+            branding,
         })
     }
 
@@ -56,5 +73,25 @@ impl AppState {
     /// Get configured autocomplete backend name
     pub fn autocomplete_backend(&self) -> Option<&str> {
         self.settings.search.autocomplete.as_deref()
+    }
+
+    /// Get branding name
+    pub fn branding_name(&self) -> Option<&str> {
+        self.branding.name.as_deref()
+    }
+
+    /// Get branding logo URL
+    pub fn branding_logo(&self) -> Option<&str> {
+        self.branding.logo.as_deref()
+    }
+
+    /// Get branding tagline
+    pub fn branding_tagline(&self) -> Option<&str> {
+        self.branding.tagline.as_deref()
+    }
+
+    /// Get branding accent color
+    pub fn branding_accent_color(&self) -> Option<&str> {
+        self.branding.accent_color.as_deref()
     }
 }

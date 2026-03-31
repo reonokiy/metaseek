@@ -107,7 +107,7 @@ impl Engine for ApkMirror {
     }
 
     fn request(&self, params: &RequestParams) -> AnyhowResult<EngineRequest> {
-        let query = format!("post_type=app_release&searchtype=apk");
+        let query = "post_type=app_release&searchtype=apk".to_string();
         let mut query_params = HashMap::new();
         query_params.insert("s".to_string(), params.query.clone());
 

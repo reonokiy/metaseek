@@ -1,344 +1,395 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
-    <title>{% block title %}{{ instance_name }}{% endblock %}</title>
-    <style>
-        :root {
-            --bg-color: #1a1a2e;
-            --bg-secondary: #16213e;
-            --text-color: #eaeaea;
-            --text-muted: #a0a0a0;
-            --accent-color: #0f3460;
-            --highlight-color: #e94560;
-            --link-color: #4da6ff;
-            --border-color: #2a2a4a;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="referrer" content="no-referrer" />
+        <title>{% block title %}{{ instance_name }}{% endblock %}</title>
+        <style>
+            :root {
+                --bg-color: #000000;
+                --bg-secondary: #1a1a1a;
+                --text-color: #ffffff;
+                --text-muted: #a0a0a0;
+                --accent-color: {{ accent_color | default(value="#e94560") }};
+                --highlight-color: {{ accent_color | default(value="#ffffff") }};
+                --link-color: #4da6ff;
+                --border-color: #2a2a2a;
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+                --brand-logo-max-height: 40px;
+                --brand-tagline-color: #a0a0a0;
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-
-        a {
-            color: var(--link-color);
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        header {
-            background: var(--bg-secondary);
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        header .container {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--highlight-color);
-        }
-
-        .logo:hover {
-            text-decoration: none;
-        }
-
-        nav {
-            display: flex;
-            gap: 15px;
-            margin-left: auto;
-        }
-
-        nav a {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        nav a:hover {
-            color: var(--text-color);
-        }
-
-        main {
-            padding: 30px 0;
-            min-height: calc(100vh - 150px);
-        }
-
-        footer {
-            background: var(--bg-secondary);
-            padding: 20px 0;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .search-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 12px 20px;
-            font-size: 1rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: 25px;
-            color: var(--text-color);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: var(--highlight-color);
-        }
-
-        .search-button {
-            padding: 12px 30px;
-            font-size: 1rem;
-            background: var(--highlight-color);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .search-button:hover {
-            background: #ff5a7a;
-        }
-
-        .categories {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .category-btn {
-            padding: 8px 16px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .category-btn:hover,
-        .category-btn.active {
-            background: var(--accent-color);
-            color: var(--text-color);
-            border-color: var(--accent-color);
-        }
-
-        .search-wrapper {
-            position: relative;
-            flex: 1;
-        }
-
-        .autocomplete {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            max-height: 0;
-            overflow: hidden;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            z-index: 1000;
-            transition: max-height 0.2s, box-shadow 0.2s;
-        }
-
-        .autocomplete.open {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 5px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-        }
-
-        .autocomplete ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .autocomplete li {
-            padding: 12px 20px;
-            cursor: pointer;
-            transition: background-color 0.15s;
-        }
-
-        .autocomplete li:hover,
-        .autocomplete li.active {
-            background: var(--accent-color);
-        }
-
-        .autocomplete li.no-results {
-            color: var(--text-muted);
-            cursor: default;
-        }
-
-        .autocomplete li.no-results:hover {
-            background: transparent;
-        }
-
-        {% block extra_styles %}{% endblock %}
-    </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <a href="/" class="logo">{{ instance_name }}</a>
-            <nav>
-                <a href="/about">About</a>
-                <a href="/preferences">Preferences</a>
-                <a href="/stats">Stats</a>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>Powered by SearXNG-RS v{{ version | default(value="0.1.0") }} - A privacy-respecting metasearch engine</p>
-        </div>
-    </footer>
-
-    {% block scripts %}{% endblock %}
-
-    <script>
-    (function() {
-        const searchInput = document.querySelector('.search-input');
-        const autocomplete = document.querySelector('.autocomplete');
-        if (!searchInput || !autocomplete) return;
-
-        const autocompleteList = autocomplete.querySelector('ul');
-        let timeoutId;
-        let activeIndex = -1;
-
-        function closeAutocomplete() {
-            autocomplete.classList.remove('open');
-            activeIndex = -1;
-        }
-
-        function renderSuggestions(suggestions) {
-            autocompleteList.innerHTML = '';
-            activeIndex = -1;
-
-            if (!suggestions || suggestions.length === 0) {
-                const li = document.createElement('li');
-                li.className = 'no-results';
-                li.textContent = 'No suggestions';
-                autocompleteList.appendChild(li);
-                autocomplete.classList.add('open');
-                return;
+                --header-bg: #ffffff;
+                --header-text: #333333;
             }
 
-            const fragment = document.createDocumentFragment();
-            suggestions.forEach((suggestion, index) => {
-                const li = document.createElement('li');
-                li.textContent = suggestion;
-                li.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    searchInput.value = suggestion;
-                    closeAutocomplete();
-                    searchInput.closest('form').submit();
-                });
-                fragment.appendChild(li);
-            });
-            autocompleteList.appendChild(fragment);
-            autocomplete.classList.add('open');
-        }
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
 
-        async function fetchSuggestions(query) {
-            try {
-                const response = await fetch('/autocomplete?q=' + encodeURIComponent(query));
-                const data = await response.json();
-                if (searchInput.value === query) {
-                    renderSuggestions(data[1] || []);
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                line-height: 1.6;
+                min-height: 100vh;
+            }
+
+            a {
+                color: var(--link-color);
+                text-decoration: none;
+            }
+
+            a:hover {
+                text-decoration: underline;
+            }
+
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+
+            header {
+                background: var(--bg-secondary);
+                padding: 15px 0;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            header .container {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: var(--highlight-color);
+            }
+
+            .logo:hover {
+                text-decoration: none;
+            }
+
+            .brand-logo {
+                max-height: var(--brand-logo-max-height);
+                width: auto;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .brand-tagline {
+                color: var(--brand-tagline-color);
+                font-size: 0.85rem;
+                margin-top: 5px;
+                text-align: center;
+            }
+
+            .brand-name {
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: var(--highlight-color);
+            }
+
+            nav {
+                display: flex;
+                gap: 15px;
+                margin-left: auto;
+            }
+
+            nav a {
+                color: var(--text-muted);
+                font-size: 0.9rem;
+            }
+
+            nav a:hover {
+                color: var(--text-color);
+            }
+
+            main {
+                padding: 30px 0;
+                min-height: calc(100vh - 150px);
+            }
+
+            footer {
+                background: var(--bg-secondary);
+                padding: 20px 0;
+                text-align: center;
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .search-form {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .search-input {
+                flex: 1;
+                padding: 12px 20px;
+                font-size: 1rem;
+                background: var(--bg-secondary);
+                border: 2px solid var(--border-color);
+                border-radius: 25px;
+                color: var(--text-color);
+                outline: none;
+                transition: border-color 0.2s;
+            }
+
+            .search-input:focus {
+                border-color: var(--highlight-color);
+            }
+
+            .search-button {
+                padding: 12px 30px;
+                font-size: 1rem;
+                background: var(--highlight-color);
+                color: white;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            .search-button:hover {
+                background: #ff5a7a;
+            }
+
+            .categories {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 20px;
+            }
+
+            .category-btn {
+                padding: 8px 16px;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 20px;
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .category-btn:hover,
+            .category-btn.active {
+                background: var(--accent-color);
+                color: var(--text-color);
+                border-color: var(--accent-color);
+            }
+
+            .search-wrapper {
+                position: relative;
+                flex: 1;
+            }
+
+            .autocomplete {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                max-height: 0;
+                overflow: hidden;
+                background: var(--bg-secondary);
+                border-radius: 12px;
+                z-index: 1000;
+                transition: max-height 0.2s, box-shadow 0.2s;
+            }
+
+            .autocomplete.open {
+                max-height: 300px;
+                overflow-y: auto;
+                margin-top: 5px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                border: 1px solid var(--border-color);
+            }
+
+            .autocomplete ul {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .autocomplete li {
+                padding: 12px 20px;
+                cursor: pointer;
+                transition: background-color 0.15s;
+            }
+
+            .autocomplete li:hover,
+            .autocomplete li.active {
+                background: var(--accent-color);
+            }
+
+            .autocomplete li.no-results {
+                color: var(--text-muted);
+                cursor: default;
+            }
+
+            .autocomplete li.no-results:hover {
+                background: transparent;
+            }
+
+            {% block extra_styles %}{% endblock %}
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="container">
+                <a href="/" class="logo">
+                    {% if logo_url %}
+                    <img
+                        src="{{ logo_url }}"
+                        alt="{{ brand_name | default(value=instance_name) }}"
+                        class="brand-logo"
+                    />
+                    {% endif %} {% if brand_tagline %}
+                    <p class="brand-tagline">{{ brand_tagline }}</p>
+                    {% else %}
+                    <span class="brand-name"
+                        >{{ brand_name | default(value=instance_name) }}</span
+                    >
+                    {% endif %}
+                </a>
+                <nav>
+                    <a href="/about">About</a>
+                    <a href="/preferences">Preferences</a>
+                    <a href="/stats">Stats</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <div class="container">{% block content %}{% endblock %}</div>
+        </main>
+
+        <footer>
+            <div class="container">
+                <p>
+                    Powered by SearXNG-RS v{{ version | default(value="0.2.0")
+                    }} - A privacy-respecting metasearch engine
+                </p>
+            </div>
+        </footer>
+
+        {% block scripts %}{% endblock %}
+
+        <script>
+            (function () {
+                const searchInput = document.querySelector(".search-input");
+                const autocomplete = document.querySelector(".autocomplete");
+                if (!searchInput || !autocomplete) return;
+
+                const autocompleteList = autocomplete.querySelector("ul");
+                let timeoutId;
+                let activeIndex = -1;
+
+                function closeAutocomplete() {
+                    autocomplete.classList.remove("open");
+                    activeIndex = -1;
                 }
-            } catch (err) {
-                closeAutocomplete();
-            }
-        }
 
-        searchInput.addEventListener('input', () => {
-            clearTimeout(timeoutId);
-            const query = searchInput.value.trim();
+                function renderSuggestions(suggestions) {
+                    autocompleteList.innerHTML = "";
+                    activeIndex = -1;
 
-            if (query.length < 2) {
-                closeAutocomplete();
-                return;
-            }
+                    if (!suggestions || suggestions.length === 0) {
+                        const li = document.createElement("li");
+                        li.className = "no-results";
+                        li.textContent = "No suggestions";
+                        autocompleteList.appendChild(li);
+                        autocomplete.classList.add("open");
+                        return;
+                    }
 
-            timeoutId = setTimeout(() => fetchSuggestions(query), 300);
-        });
+                    const fragment = document.createDocumentFragment();
+                    suggestions.forEach((suggestion, index) => {
+                        const li = document.createElement("li");
+                        li.textContent = suggestion;
+                        li.addEventListener("mousedown", (e) => {
+                            e.preventDefault();
+                            searchInput.value = suggestion;
+                            closeAutocomplete();
+                            searchInput.closest("form").submit();
+                        });
+                        fragment.appendChild(li);
+                    });
+                    autocompleteList.appendChild(fragment);
+                    autocomplete.classList.add("open");
+                }
 
-        searchInput.addEventListener('keydown', (e) => {
-            const items = autocompleteList.querySelectorAll('li:not(.no-results)');
-            if (items.length === 0) return;
+                async function fetchSuggestions(query) {
+                    try {
+                        const response = await fetch(
+                            "/autocomplete?q=" + encodeURIComponent(query),
+                        );
+                        const data = await response.json();
+                        if (searchInput.value === query) {
+                            renderSuggestions(data[1] || []);
+                        }
+                    } catch (err) {
+                        closeAutocomplete();
+                    }
+                }
 
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (activeIndex >= 0) items[activeIndex].classList.remove('active');
-                activeIndex = (activeIndex + 1) % items.length;
-                items[activeIndex].classList.add('active');
-                searchInput.value = items[activeIndex].textContent;
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (activeIndex >= 0) items[activeIndex].classList.remove('active');
-                activeIndex = (activeIndex - 1 + items.length) % items.length;
-                items[activeIndex].classList.add('active');
-                searchInput.value = items[activeIndex].textContent;
-            } else if (e.key === 'Escape') {
-                closeAutocomplete();
-            }
-        });
+                searchInput.addEventListener("input", () => {
+                    clearTimeout(timeoutId);
+                    const query = searchInput.value.trim();
 
-        searchInput.addEventListener('blur', () => {
-            setTimeout(closeAutocomplete, 150);
-        });
+                    if (query.length < 2) {
+                        closeAutocomplete();
+                        return;
+                    }
 
-        searchInput.addEventListener('focus', () => {
-            if (autocompleteList.children.length > 0 && searchInput.value.length >= 2) {
-                autocomplete.classList.add('open');
-            }
-        });
-    })();
-    </script>
-</body>
+                    timeoutId = setTimeout(() => fetchSuggestions(query), 300);
+                });
+
+                searchInput.addEventListener("keydown", (e) => {
+                    const items = autocompleteList.querySelectorAll(
+                        "li:not(.no-results)",
+                    );
+                    if (items.length === 0) return;
+
+                    if (e.key === "ArrowDown") {
+                        e.preventDefault();
+                        if (activeIndex >= 0)
+                            items[activeIndex].classList.remove("active");
+                        activeIndex = (activeIndex + 1) % items.length;
+                        items[activeIndex].classList.add("active");
+                        searchInput.value = items[activeIndex].textContent;
+                    } else if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        if (activeIndex >= 0)
+                            items[activeIndex].classList.remove("active");
+                        activeIndex =
+                            (activeIndex - 1 + items.length) % items.length;
+                        items[activeIndex].classList.add("active");
+                        searchInput.value = items[activeIndex].textContent;
+                    } else if (e.key === "Escape") {
+                        closeAutocomplete();
+                    }
+                });
+
+                searchInput.addEventListener("blur", () => {
+                    setTimeout(closeAutocomplete, 150);
+                });
+
+                searchInput.addEventListener("focus", () => {
+                    if (
+                        autocompleteList.children.length > 0 &&
+                        searchInput.value.length >= 2
+                    ) {
+                        autocomplete.classList.add("open");
+                    }
+                });
+            })();
+        </script>
+    </body>
 </html>

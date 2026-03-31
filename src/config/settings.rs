@@ -17,6 +17,7 @@ pub struct Settings {
     pub plugins: PluginsSettings,
     pub ui: UiSettings,
     pub redis: Option<RedisSettings>,
+    pub branding: BrandingSettings,
 }
 
 impl Default for Settings {
@@ -30,6 +31,7 @@ impl Default for Settings {
             plugins: PluginsSettings::default(),
             ui: UiSettings::default(),
             redis: None,
+            branding: BrandingSettings::default(),
         }
     }
 }
@@ -390,6 +392,31 @@ impl Default for UiSettings {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RedisSettings {
     pub url: String,
+}
+
+/// Branding settings
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct BrandingSettings {
+    /// Brand name to display
+    pub name: Option<String>,
+    /// Logo URL
+    pub logo: Option<String>,
+    /// Tagline or description
+    pub tagline: Option<String>,
+    /// Accent color for UI customization
+    pub accent_color: Option<String>,
+}
+
+impl Default for BrandingSettings {
+    fn default() -> Self {
+        Self {
+            name: None,
+            logo: None,
+            tagline: None,
+            accent_color: None,
+        }
+    }
 }
 
 /// Generate a random secret key

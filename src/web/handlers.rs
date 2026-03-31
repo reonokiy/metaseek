@@ -82,6 +82,19 @@ pub struct ResultResponse {
 pub async fn index(State(state): State<AppState>) -> impl IntoResponse {
     let mut ctx = Context::new();
     ctx.insert("instance_name", state.instance_name());
+    ctx.insert("version", crate::VERSION);
+    if let Some(name) = state.branding_name() {
+        ctx.insert("brand_name", name);
+    }
+    if let Some(tagline) = state.branding_tagline() {
+        ctx.insert("brand_tagline", tagline);
+    }
+    if let Some(color) = state.branding_accent_color() {
+        ctx.insert("accent_color", color);
+    }
+    if let Some(url) = state.branding_logo() {
+        ctx.insert("logo_url", url);
+    }
     ctx.insert(
         "categories",
         &["general", "images", "videos", "news", "it", "science"],
@@ -250,6 +263,19 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
 
             let mut ctx = Context::new();
             ctx.insert("instance_name", state.instance_name());
+            ctx.insert("version", crate::VERSION);
+            if let Some(name) = state.branding_name() {
+                ctx.insert("brand_name", name);
+            }
+            if let Some(tagline) = state.branding_tagline() {
+                ctx.insert("brand_tagline", tagline);
+            }
+            if let Some(color) = state.branding_accent_color() {
+                ctx.insert("accent_color", color);
+            }
+            if let Some(url) = state.branding_logo() {
+                ctx.insert("logo_url", url);
+            }
             ctx.insert("query", &raw_query);
             ctx.insert("results", &ordered);
             ctx.insert("answers", &results.get_answers());

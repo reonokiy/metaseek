@@ -48,7 +48,12 @@ impl AppState {
         let http_client = Arc::new(client.clone());
         let search = Arc::new(Search::new(client, registry.clone()));
         let templates = Arc::new(super::Templates::new()?);
-        let branding = Arc::new(Branding::default());
+        let branding = Arc::new(Branding {
+            name: settings.branding.name.clone(),
+            logo: settings.branding.logo.clone(),
+            tagline: settings.branding.tagline.clone(),
+            accent_color: settings.branding.accent_color.clone(),
+        });
 
         Ok(Self {
             settings,

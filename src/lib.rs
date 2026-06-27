@@ -9,6 +9,7 @@ pub mod config;
 pub mod engines;
 pub mod locales;
 pub mod metrics;
+pub mod mcp;
 pub mod network;
 pub mod plugins;
 pub mod query;

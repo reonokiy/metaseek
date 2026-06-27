@@ -1,6 +1,7 @@
 //! HTTP request handlers
 
 use super::state::AppState;
+use crate::mcp::{McpError, McpRequest, McpResponse};
 use crate::query::ParsedQuery;
 use crate::search::{EngineRef, SearchQuery};
 use axum::{
@@ -718,4 +719,27 @@ mod tests {
         assert!(serialized.get("unresponsive_engines").is_some());
         assert!(serialized.get("engine_errors").is_some());
     }
+}
+
+/// MCP POST handler - receives JSON-RPC requests
+pub async fn mcp_post(
+    State(_state): State<AppState>,
+    Json(request): Json<McpRequest>,
+) -> impl IntoResponse {
+    // Note: For full MCP support, we'd need to pass AppState to handle requests
+    // This is a placeholder that returns an error for now
+    // The actual implementation would be in the stdio mode or via a different route
+    tracing::warn!("MCP HTTP request received but not fully implemented yet");
+    
+    let response = McpResponse {
+        jsonrpc: "2.0".to_string(),
+        id: request.id.clone(),
+        result: None,
+        error: Some(McpError::new(
+            -32000,
+            "MCP HTTP endpoint is experimental. Use stdio mode (--mcp) for full support.".to_string(),
+        )),
+    };
+    
+    Json(response)
 }

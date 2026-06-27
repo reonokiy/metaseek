@@ -6,6 +6,7 @@ use anyhow::Result;
 use searxng_rs::{
     config::Settings,
     engines::EngineLoader,
+    mcp,
     network::HttpClient,
     query::ParsedQuery,
     search::{EngineRef, SearchQuery},
@@ -15,6 +16,7 @@ use std::env;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::process;
+use std::sync::Arc;
 use tracing::{info, Level};
 use tracing_subscriber::FmtSubscriber;
 
@@ -32,6 +34,7 @@ OPTIONS:
     -p, --port <PORT>      Override server port (default: 8888)
     -b, --bind <ADDR>      Override bind address (default: 127.0.0.1)
     -q, --query <TEXT>     Run a one-off search and print JSON results to stdout
+    --mcp                  Start MCP server in stdio mode for AI agent integration
     -h, --help             Print this help message and exit
     -V, --version          Print version information and exit
 
@@ -58,6 +61,9 @@ EXAMPLES:
 
     # Run a one-off search
     searxng-rs --query "rust programming"
+
+    # Start MCP server in stdio mode
+    searxng-rs --mcp
 "#,
         searxng_rs::VERSION
     );
@@ -86,6 +92,7 @@ async fn main() -> Result<()> {
     // Parse custom arguments and set environment variables
     let mut i = 1;
     let mut query_text: Option<String> = None;
+    let mut mcp_mode: bool = false;
     while i < args.len() {
         match args[i].as_str() {
             "--config" | "-c" => {
@@ -129,6 +136,10 @@ async fn main() -> Result<()> {
                     process::exit(1);
                 }
             }
+            "--mcp" => {
+                mcp_mode = true;
+                i += 1;
+            }
             _ => {
                 i += 1;
             }
@@ -147,13 +158,13 @@ async fn main() -> Result<()> {
         .with_target(false)
         .init();
 
-    if query_text.is_none() {
+    if query_text.is_none() && !mcp_mode {
         info!("Starting SearXNG-RS v{}", searxng_rs::VERSION);
     }
 
     // Load configuration
     let settings = load_settings()?;
-    if query_text.is_none() {
+    if query_text.is_none() && !mcp_mode {
         info!(
             "Loaded configuration for instance: {}",
             settings.general.instance_name
@@ -162,20 +173,27 @@ async fn main() -> Result<()> {
 
     // Initialize HTTP client
     let client = HttpClient::with_settings(&settings.outgoing)?;
-    if query_text.is_none() {
+    if query_text.is_none() && !mcp_mode {
         info!("HTTP client initialized");
     }
 
     // Load engines
     let registry = EngineLoader::load(&settings)?;
-    if query_text.is_none() {
+    if query_text.is_none() && !mcp_mode {
         info!("Loaded {} search engines", registry.len());
     }
 
     // Create application state
     let state = AppState::new(settings.clone(), registry, client)?;
-    if query_text.is_none() {
+    if query_text.is_none() && !mcp_mode {
         info!("Application state initialized");
+    }
+
+    // If --mcp was provided, start MCP server in stdio mode
+    if mcp_mode {
+        info!("Starting MCP server in stdio mode");
+        mcp::run_stdio_server(Arc::new(state)).await?;
+        return Ok(());
     }
 
     // If --query was provided, run a one-off search and exit

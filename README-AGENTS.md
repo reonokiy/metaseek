@@ -84,7 +84,7 @@ GET /search?q={query}&format=json
 | `format` | string | Output format (`json`, `html`, `csv`) | `json` |
 | `categories` | string | Comma-separated categories | All |
 | `engines` | string | Comma-separated engine names | All |
-| `language` | string | Language code (e.g., `en`, `de`) | `auto` |
+| `language` | string | Language code (e.g., `en`, `de`, `fr`) | `auto` |
 | `safesearch` | int | `0` (off), `1` (moderate), `2` (strict) | `0` |
 | `time_range` | string | `day`, `week`, `month`, `year` | None |
 | `pageno` | int | Page number | `1` |
@@ -122,7 +122,90 @@ curl -s "http://127.0.0.1:8888/search?q=ai+tools&format=json" | \
 
 ---
 
-## 3. JSON Response Structure
+## 3. MCP Protocol (Model Context Protocol)
+
+SearXNG-RS supports the MCP protocol for direct integration with AI agents and LLMs.
+
+### Stdio Mode (Recommended for Agents)
+
+Start the MCP server in stdio mode:
+
+```bash
+./target/release/searxng-rs --mcp
+```
+
+The server reads JSON-RPC requests from `stdin` and writes responses to `stdout`.
+
+### Example MCP Request
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
+```
+
+### Example MCP Response
+
+```json
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","serverInfo":{"name":"searxng-rs","version":"0.3.0"},"capabilities":{"tools":{}}}}
+```
+
+### Tools Available
+
+**`search` Tool** - Perform web search with filters
+
+Request:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "search",
+    "arguments": {
+      "query": "rust programming",
+      "engines": "google,duckduckgo",
+      "language": "en",
+      "safesearch": 1
+    }
+  }
+}
+```
+
+Response:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "query": "rust programming",
+    "number_of_results": 15,
+    "results": [
+      {
+        "url": "https://www.rust-lang.org",
+        "title": "Rust Programming Language",
+        "content": "...",
+        "engine": "google",
+        "score": 2.5
+      }
+    ],
+    "suggestions": ["rust tutorial", "rust book"],
+    "answers": []
+  }
+}
+```
+
+### HTTP Endpoint (Experimental)
+
+The `/mcp` endpoint accepts JSON-RPC requests via POST:
+
+```bash
+curl -X POST http://127.0.0.1:8888/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+```
+
+---
+
+## 4. JSON Response Structure
 
 ### Top-Level Keys
 ```json
@@ -181,7 +264,7 @@ Example error response:
 
 ---
 
-## 4. Advanced Agent Patterns
+## 5. Advanced Agent Patterns
 
 ### Pagination Loop
 ```bash
@@ -222,7 +305,7 @@ export ALL_PROXY=socks5h://127.0.0.1:9050
 
 ---
 
-## 5. Quick Reference Card
+## 6. Quick Reference Card
 
 | Task | Command |
 |------|---------|
@@ -232,12 +315,14 @@ export ALL_PROXY=socks5h://127.0.0.1:9050
 | **API + Pagination** | `&pageno=2` |
 | **API + Engine Filter** | `&engines=google,duckduckgo` |
 | **API + Time Filter** | `&time_range=week` |
+| **MCP Stdio** | `./searxng-rs --mcp` |
+| **MCP HTTP** | `POST /mcp` |
 | **Parse JSON** | `| jq '.results[]'` |
 | **Tor Search** | `export ALL_PROXY=socks5h://127.0.0.1:9050` |
 
 ---
 
-## 6. Troubleshooting
+## 7. Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
@@ -246,6 +331,7 @@ export ALL_PROXY=socks5h://127.0.0.1:9050
 | **API Key Error** | Configure `api_key` in `settings.yml` or pass via env. |
 | **Tor Engine Fails** | Ensure `ALL_PROXY` is set and Tor is running. |
 | **Wrong Format** | Always use `&format=json` in API or `--query` in CLI. |
+| **MCP Connection** | Check that stdio is properly connected; use line-delimited JSON. |
 
 ---
 

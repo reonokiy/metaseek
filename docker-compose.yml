@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Tor Proxy Service
+  torproxy:
+    container_name: torproxy
+    hostname: torproxy
+    image: zhaowde/rotating-tor-http-proxy:latest
+    restart: unless-stopped
+    pull_policy: always
+    ports:
+      - "127.0.0.1:3128:3128"   # HTTP Proxy
+      - "127.0.0.1:9050:9050"   # SOCKS5 Proxy (Tor)
+      - "127.0.0.1:4444:4444"   # HTTPS Proxy
+    environment:
+      - TOR_EXIT_COUNTRY=de,at,gb,fr,nl,it,is,jp,sg,au,nz,ca,us
+    networks:
+      - searx-network
+
+  # SearXNG-RS Application Service
+  # Uses your existing Dockerfile
+  searxng-rs:
+    container_name: searxng-rs
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8888:8888"
+    environment:
+      # Route all traffic through the Tor proxy service
+      # 'socks5h' ensures DNS resolution happens inside the Tor network
+      - ALL_PROXY=socks5h://torproxy:9050
+      
+      # Optional: Instance configuration
+      - SEARXNG_BRANDING_NAME=SearXNG-RS
+      - SEARXNG_BRANDING_TAGLINE=Privacy-respecting metasearch via Tor
+    depends_on:
+      - torproxy
+    networks:
+      - searx-network
+    volumes:
+      # Mount your local config if you have one
+      - ./config:/app/config:ro
+      # Mount templates if needed
+      - ./src/templates:/app/src/templates:ro
+
+networks:
+  searx-network:
+    driver: bridge

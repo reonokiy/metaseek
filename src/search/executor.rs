@@ -133,7 +133,7 @@ impl Search {
             let engine_config = self.registry.get_config(&engine_name);
             if let Some(config) = engine_config {
                 if let Some(ref api_key) = config.api_key {
-                    if !api_key.is_empty() {
+                    if !api_key.trim().is_empty() {
                         engine_data
                             .insert("api_key".to_string(), serde_json::json!(api_key.clone()));
                     }
@@ -268,11 +268,11 @@ impl Search {
 
     /// Execute search and return results for a specific category
     pub async fn search_category(&self, query: &str, category: &str, page: u32) -> ResultContainer {
-        let engines = self.registry.get_by_category(category);
+        let engine_names = self.registry.get_engine_names_by_category(category);
 
-        let engine_refs: Vec<EngineRef> = engines
+        let engine_refs: Vec<EngineRef> = engine_names
             .iter()
-            .map(|e| EngineRef::new(e.name(), category))
+            .map(|e: &String| EngineRef::new(e.as_str(), category))
             .collect();
 
         let search_query = SearchQuery {

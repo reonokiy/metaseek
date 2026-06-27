@@ -1,0 +1,106 @@
+[Unit]
+Description=SearXNG-RS Privacy-Respecting Metasearch Engine
+Documentation=https://github.com/sempervictus/searxng-rs
+After=network.target
+Wants=network.target
+
+# Ensure the service starts after the network is ready
+# and restarts automatically if it crashes.
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+# -----------------------------------------------------------------------------
+# 1. User & Group Isolation
+# -----------------------------------------------------------------------------
+# To run the service as a dedicated, non-root user.
+# 'searxng' user should exist on the system (create if missing: sudo useradd -r -s /bin/false searxng)
+# 'searxng' group should be owned by the data directories.
+# User=searxng
+# Group=searxng
+User=nobody
+Group=nobody
+
+# Prevent the service from opening new sessions or acquiring privileges.
+# This is critical for security.
+PrivilegeSeparation=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+MemoryDenyWriteExecute=yes
+LockPersonality=yes
+# Prevent the service from seeing other processes or the full kernel API.
+NoNewPrivileges=yes
+
+# Restrict access to the filesystem to specific paths only.
+# The service can read the binary, config, and cache, but not the rest of the system.
+# Note: Adjust paths below if your binary or config locations differ.
+ReadOnlyPaths=/var/lib/searxng-rs /etc/searxng-rs /etc/default/searxng-rs.env
+ReadWritePaths=/var/cache/searxng-rs /tmp
+
+# -----------------------------------------------------------------------------
+# 2. Network Access
+# -----------------------------------------------------------------------------
+# Allow network access for the search engine to fetch results.
+# By default, systemd restricts network access in some secure modes, 
+# but we explicitly allow outbound connections via the standard stack.
+# If strict isolation is required, see 'RestrictAddressFamilies'.
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# Allow the service to bind to the configured port (handled via EnvironmentFile)
+# We do NOT bind to 0.0.0.0 unless explicitly configured in the env file.
+
+# -----------------------------------------------------------------------------
+# 3. Environment & Configuration
+# -----------------------------------------------------------------------------
+# Load the environment file located at /etc/default/searxng-rs.env.
+# This file sets SEARXNG_PORT, SEARXNG_BIND_ADDRESS, SEARXNG_SECRET_KEY, etc.
+EnvironmentFile=-/etc/default/searxng-rs.env
+
+# Set the binary execution path explicitly.
+# Adjust this path if your release binary is located elsewhere.
+# Example: /usr/local/bin/searxng-rs or /opt/searxng-rs/target/release/searxng-rs
+ExecStart=/usr/local/bin/searxng-rs
+
+# Restart policy: Always try to restart if the service exits unexpectedly.
+# 'always' ensures the service is up. 'on-failure' only restarts on crash.
+Restart=always
+RestartSec=5s
+
+# Standard output/logging handling.
+# Log to the systemd journal for easy viewing with 'journalctl -u searxng-rs'.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=searxng-rs
+
+# -----------------------------------------------------------------------------
+# 4. Runtime Limits & Resources
+# -----------------------------------------------------------------------------
+# Limit the number of open file descriptors (useful for connection pooling).
+LimitNOFILE=65535
+
+# Limit memory usage to prevent runaway processes (adjust based on available RAM).
+# Note: The binary is Rust/Tokio, so it's generally efficient, but limits help.
+LimitAS=infinity
+
+# Limit CPU time (optional, usually not needed for web servers).
+# LimitCPU=infinity
+
+# -----------------------------------------------------------------------------
+# 5. Health Checks (Optional but Recommended)
+# -----------------------------------------------------------------------------
+# Define a health check command. 
+# The service will be marked as unhealthy if this command fails.
+# Assuming the binary supports a --health-check flag or the /health endpoint is accessible via curl.
+# If the binary handles health internally, remove this line.
+# HealthCheckCommand=curl -sf http://127.0.0.1:8888/health
+
+[Install]
+# Enable the service to start automatically at boot.
+WantedBy=multi-user.target

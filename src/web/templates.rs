@@ -21,6 +21,7 @@ impl Templates {
         tera.add_raw_template("index.html", include_str!("../templates/index.html"))?;
         tera.add_raw_template("search.html", include_str!("../templates/search.html"))?;
         tera.add_raw_template("about.html", include_str!("../templates/about.html"))?;
+        tera.add_raw_template("usage.html", include_str!("../templates/usage.html"))?;
         tera.add_raw_template(
             "preferences.html",
             include_str!("../templates/preferences.html"),

@@ -1,446 +1,427 @@
 # SearXNG-RS
 
-[![CI](https://github.com/sempervictus/searxng-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/sempervictus/searxng-rs/actions/workflows/ci.yml)
+A privacy-respecting metasearch engine written in Rust, aggregating results from 50+ search engines including Google, Bing, DuckDuckGo, academic databases, Tor hidden services, and more.
 
-A privacy-respecting metasearch engine written in Rust. This project is a Rust-based implementation inspired by [SearXNG](https://github.com/searxng/searxng).
+## Features
 
-**Version:** 0.2.0  
-**Total Engines:** 51 (45 + 6 new)  
-**Tests Passing:** 134 (100% pass rate)  
-**Compilation:** 0 errors  
-**Build Status:** ✅ Production-ready  
-**API Key System:** ✅ Complete validation infrastructure
-
----
+- **Multi-Engine Aggregation**: Query 50+ search engines simultaneously
+- **Privacy-First**: No tracking, no cookies, no IP logging
+- **Tor Support**: Integrated Ahmia engine for .onion hidden service search
+- **RESTful JSON API**: Machine-readable results for automation and agents
+- **Custom Branding**: Environment-variable driven theming with local logo embedding
+- **CLI Mode**: One-off search execution without server startup
+- **Docker Ready**: Production-grade containerization with systemd examples
 
 ## Quick Start
 
-```bash
-# Install Rust (if not installed)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Clone and build
-git clone https://github.com/sempervictus/searxng-rs.git
-cd searxng-rs
-cargo build --release
-
-# Run server
-./target/release/searxng-rs
-# Server starts at http://127.0.0.1:8888
-```
-
-## What's New in v0.2.0
-
-✅ **6 New Engines Added:**
-- Google Scholar, PubMed, PDBe, BASE, SCANR Structures (Academic)
-- IMDb (Entertainment)
-
-✅ **API Key Validation System:**
-- LinkedIn Companies: Mandatory API key
-- GitHub/GitLab: Optional API keys (higher rate limits)
-- Runtime API key override
-- Clear error messages in Web UI and JSON API
-
-✅ **Documentation:**
-- Complete API key setup guide
-- Developer quick reference
-- Agent implementation guide
-
----
-
-## Features
-
-- **51 Search Engines** - Google, Bing, DuckDuckGo, GitHub, arXiv, Semantic Scholar, and more
-- **Privacy-First** - No user tracking, tracker URL removal
-- **Multiple Formats** - HTML, JSON, CSV responses
-- **API Key Support** - LinkedIn, GitHub, GitLab with clear error messages
-- **Built-in Plugins** - Calculator, unit converter, hash generator, tracker remover
-- **Autocomplete** - DuckDuckGo, Google, Wikipedia, Brave backends
-- **Query Syntax** - Language filters, engine bangs, time ranges
-
-## Features
-
-- **Multi-Engine Search** - Aggregates results from multiple search engines
-- **Privacy-First** - No user tracking or profiling, tracker URL removal
-- **Query Syntax** - Language filters, engine bangs, time ranges
-- **Built-in Plugins** - Calculator, unit converter, hash generator, tracker remover
-- **Autocomplete** - Search suggestions from configurable backends
-- **Basic i18n** - UI translations for English, German, and French
-
-## Supported Search Engines
-
-**51 engines across 7 categories:**
-
-| Category | Engines |
-|----------|---------|
-| General | Google, Bing, DuckDuckGo, Brave, Wikipedia |
-| Academic | arXiv, Semantic Scholar, OpenAlex, Crossref, Google Scholar, PubMed, PDBe, BASE, SCANR Structures |
-| Code | GitHub, GitLab, Stack Overflow, Crates.io, PyPI, npm, hex.pm, Docker Hub, and more |
-| OS Packages | Arch Linux, Alpine Linux, Void Linux, CachyOS, Repology |
-| Corporate | OpenCorporates, SEC EDGAR, Crunchbase, IMDb |
-| Security | NVD, Ahmia |
-| News | Reuters, Bloomberg, AP News |
-
-**API Key Engines:** LinkedIn Companies (required), GitHub/GitLab (optional)
-
-## Installation
-
 ### Prerequisites
 
-- Rust 1.70+ (with Cargo)
+- Rust 1.70+ (for compilation)
+- Docker (optional, for containerized deployment)
+- Tor proxy (optional, for Ahmia engine)
 
-### Build
+### Installation
 
 ```bash
-# Debug build
-cargo build
+# Clone the repository
+git clone https://github.com/searxng-rs/searxng-rs.git
+cd searxng-rs
 
-# Release build (recommended)
+# Build from source
 cargo build --release
+
+# Or run with Docker
+docker-compose up -d
 ```
 
-### Run
+### Configuration
+
+Create `config/settings.yml` from the example:
 
 ```bash
-# Using cargo
-cargo run --release
+cp config/settings.yml.example config/settings.yml
+```
 
-# Or run the binary directly
+Key configuration sections:
+
+- **server**: Bind address, port, secret key
+- **branding**: Custom name, logo, tagline, accent color
+- **engines**: Enable/disable individual search engines
+- **search**: Default categories, time ranges, safesearch
+
+### Environment Variables
+
+Override settings via environment variables:
+
+```bash
+# Branding
+export SEARXNG_BRANDING_NAME="My Search Engine"
+export SEARXNG_BRANDING_LOGO="/path/to/logo.svg"
+export SEARXNG_BRANDING_TAGLINE="Custom tagline"
+export SEARXNG_BRANDING_ACCENT_COLOR="#ff6600"
+
+# Server
+export SEARXNG_PORT=9000
+export SEARXNG_BIND_ADDRESS=0.0.0.0
+export SEARXNG_SECRET_KEY="generate-a-secure-random-key"
+
+# Tor Proxy (required for Ahmia engine)
+export ALL_PROXY=socks5h://127.0.0.1:9050
+```
+
+## Usage
+
+### Web Interface
+
+Start the server:
+
+```bash
 ./target/release/searxng-rs
 ```
 
-The server starts at `http://127.0.0.1:8888` by default.
+Navigate to `http://localhost:8888` in your browser.
+
+### CLI Mode (One-Off Search)
+
+Execute a search without starting the server:
+
+```bash
+./target/release/searxng-rs --query "rust programming"
+```
+
+Output is JSON to stdout, suitable for scripting:
+
+```bash
+./target/release/searxng-rs --query "climate change" | jq '.results[] | {title, url}'
+```
+
+### JSON API
+
+Query the REST API directly:
+
+```bash
+curl "http://localhost:8888/search?q=artificial+intelligence&format=json"
+```
+
+Parameters:
+
+- `q`: Search query (required)
+- `format`: Output format (`json`, `html`, `xml`)
+- `categories`: Comma-separated category list (`general,news,academic`)
+- `engines`: Comma-separated engine list (`google,duckduckgo,wikipedia`)
+- `language`: Language code (`en`, `de`, `fr`)
+- `safesearch`: `0` (off), `1` (moderate), `2` (strict)
+- `time_range`: `day`, `week`, `month`, `year`
+- `pageno`: Page number (default: 1)
+
+### Query Syntax
+
+Advanced search operators:
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `!engine` | Search specific engine | `!github rust crates` |
+| `:lang` | Filter by language | `python tutorial :en` |
+| `<N` | Custom timeout (seconds) | `news <3` |
+| `!!` | Direct to first result | `!! weather` |
+| `!safesearch` | Enable strict filtering | `images !safesearch` |
+| `!day/!week/!month/!year` | Time range filter | `tech news !week` |
+
+### Tor Hidden Service Search (Ahmia)
+
+The Ahmia engine requires Tor proxy configuration:
+
+```bash
+# Start Tor service
+sudo systemctl start tor
+
+# Set proxy environment variable
+export ALL_PROXY=socks5h://127.0.0.1:9050
+
+# Run search with Ahmia enabled
+./target/release/searxng-rs --query "onion services"
+```
+
+Ahmia automatically:
+- Connects to the .onion endpoint
+- Extracts anti-bot tokens from the homepage
+- Caches tokens for subsequent requests
+- Parses HTML results into structured data
+
+### Reuters API Integration
+
+Reuters engine uses the official JSON API:
+
+```bash
+./target/release/searxng-rs --query "market news" --categories news,financial
+```
+
+Results include:
+- Article descriptions and kicker categories
+- Publication timestamps
+- Source attribution
+- Multi-engine cross-referencing
+
+## Branding System
+
+### Local Logo Embedding
+
+Specify a local file path for the logo:
+
+```yaml
+branding:
+  logo: "/assets/logo.svg"
+```
+
+The system:
+1. Detects file extension (`.svg`, `.png`, `.jpg`, `.gif`)
+2. Reads file contents
+3. Encodes as base64
+4. Constructs data URI: `data:image/svg+xml;base64,<encoded-data>`
+5. Embeds directly in HTML responses
+
+Benefits:
+- No external HTTP requests
+- Offline-capable deployments
+- Faster page loads
+- Complete privacy (no third-party tracking)
+
+### Environment Variable Overrides
+
+Priority order: Environment > Configuration file > Defaults
+
+```bash
+# Override all branding elements at runtime
+SEARXNG_BRANDING_NAME="Enterprise Search" \
+SEARXNG_BRANDING_LOGO="/opt/logos/enterprise.png" \
+SEARXNG_BRANDING_TAGLINE="Secure internal search" \
+SEARXNG_BRANDING_ACCENT_COLOR="#0066cc" \
+./target/release/searxng-rs
+```
+
+## Architecture
+
+```
+src/
+  engines/          # Search engine implementations (50+ modules)
+    mod.rs          # Engine declarations
+    registry.rs     # Engine registration and loading
+    traits.rs       # Engine trait definition
+    <engine>.rs     # Individual engine (e.g., ahmia.rs, reuters.rs)
+  results/          # Result types and metadata
+  query/            # Query parsing and operator handling
+  search/           # Parallel engine execution and result merging
+  config/           # Settings loading and validation
+  web/              # HTTP server and template rendering
+    handlers.rs     # Route handlers (search, index, about)
+    state.rs        # Application state (branding, config)
+    templates.rs    # Tera template engine integration
+  network/          # HTTP client with proxy support
+```
+
+### Engine Lifecycle
+
+1. **Load**: `EngineLoader` reads `settings.yml`, instantiates enabled engines
+2. **Validate**: Each engine checks API key requirements (if applicable)
+3. **Request**: `Engine::request()` builds HTTP query with parameters
+4. **Execute**: Parallel `reqwest` calls with configurable timeouts
+5. **Parse**: `Engine::response()` extracts JSON/HTML/XML into `Result` objects
+6. **Merge**: `Search` executor deduplicates, ranks, and aggregates results
+7. **Return**: JSON API or HTML template with unified result set
+
+### Token Caching (Ahmia)
+
+```
+User Request
+    |
+    v
+Check DashMap Cache (token key: "ahmia_tokens")
+    |
+    +-- Hit (not expired) --> Use cached token
+    |
+    +-- Miss/Expired --> Fetch from .onion homepage
+                              |
+                              v
+                         Parse HTML for hidden inputs
+                              |
+                              v
+                         Store (name, value, timestamp) in DashMap
+                              |
+                              v
+                         Inject token into search request
+```
+
+## Deployment
 
 ### Docker
 
 ```bash
-docker run -p 8888:8888 ghcr.io/geoffsee/searxng-rs:latest
+docker-compose up -d
 ```
 
-Multi-arch images (amd64/arm64) are available on GHCR.
+Environment variables in `searxng-rs.env`:
 
-## Configuration
-
-The application looks for `settings.yml` in these locations (in order):
-
-1. `$SEARXNG_SETTINGS_PATH` environment variable
-2. `./settings.yml`
-3. `./config/settings.yml`
-4. `/etc/searxng/settings.yml`
-5. `~/.config/searxng-rs/settings.yml`
-
-### Example Configuration
-
-```yaml
-general:
-  debug: false
-  instance_name: "SearXNG-RS"
-  enable_metrics: true
-
-search:
-  safe_search: 0              # 0=None, 1=Moderate, 2=Strict
-  autocomplete: "duckduckgo"
-  default_lang: "auto"
-
-server:
-  port: 8888
-  bind_address: "127.0.0.1"
-  secret_key: "change-me-in-production"
-
-engines:
-  # Free engines (no API key required)
-  - name: google
-    disabled: false
-  - name: duckduckgo
-    disabled: false
-  
-  # Optional API key engines (work without key, better with)
-  - name: github
-    disabled: false
-    # api_key: "your_github_token"  # Optional: Higher rate limits
-  
-  # Required API key engines (must configure)
-  - name: linkedin_companies
-    disabled: true  # Enabled only with API key
-    api_key: "your_linkedin_api_key"
+```env
+SEARXNG_BRANDING_NAME=My Search
+SEARXNG_BRANDING_LOGO=/assets/logo.svg
+SEARXNG_PORT=8888
+SEARXNG_BIND_ADDRESS=0.0.0.0
+ALL_PROXY=socks5h://172.17.0.1:9050
 ```
 
-### Engine Configuration Reference
+### Systemd Service
 
-See `config/settings.yml.example` for complete engine configuration.
+```ini
+# /etc/systemd/system/searxng-rs.service
+[Unit]
+Description=SearXNG-RS Metasearch Engine
+After=network.target
 
-**API Key Setup:**
-- Required keys: LinkedIn Companies (see [API_KEY_SETUP.md](API_KEY_SETUP.md))
-- Optional keys: GitHub, GitLab (higher rate limits)
-- All other engines: Free, no keys needed
+[Service]
+Type=simple
+User=searxng
+WorkingDirectory=/opt/searxng-rs
+EnvironmentFile=/etc/searxng/searxng-rs.env
+ExecStart=/opt/searxng-rs/target/release/searxng-rs
+Restart=on-failure
 
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SEARXNG_SETTINGS_PATH` | Path to settings.yml | - |
-| `SEARXNG_DEBUG` | Enable debug mode | `false` |
-| `SEARXNG_PORT` | Server port | `8888` |
-| `SEARXNG_BIND_ADDRESS` | Bind address | `127.0.0.1` |
-| `SEARXNG_SECRET_KEY` | Secret key for sessions | - |
-
-## Query Syntax
-
-| Syntax | Example | Description |
-|--------|---------|-------------|
-| `:lang` | `rust :en` | Filter by language |
-| `!engine` | `rust !github` | Search specific engine |
-| `!category` | `cats !images` | Search category |
-| `<timeout` | `query <10` | Custom timeout (seconds) |
-| `!safesearch` | `query !safesearch` | Enable safe search |
-| `!nosafesearch` | `query !nosafesearch` | Disable safe search |
-| `!day/week/month/year` | `news !week` | Time range filter |
-| `!!` | `!! query` | Redirect to first result |
-
-## API Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /` | Home page |
-| `GET /search` | Search results |
-| `GET /autocomplete` | Search suggestions |
-| `GET /preferences` | User preferences |
-| `GET /stats` | Instance statistics |
-| `GET /health` | Health check |
-
-## Project Structure
-
-```
-src/
-├── engines/        # Search engine implementations
-├── web/            # HTTP server and routes
-├── search/         # Search orchestration
-├── query/          # Query parsing
-├── results/        # Result types
-├── plugins/        # Built-in plugins
-├── autocomplete/   # Autocomplete backends
-├── config/         # Configuration
-├── network/        # HTTP client
-├── cache/          # Caching layer
-├── locales/        # Translations
-└── templates/      # HTML templates
+[Install]
+WantedBy=multi-user.target
 ```
 
-## Tech Stack
-
-- **Runtime**: Tokio
-- **Web Framework**: Axum
-- **HTTP Client**: Reqwest
-- **Templates**: Tera
-- **Caching**: Moka
-
-## Development
+Enable and start:
 
 ```bash
-# Run tests
-cargo test
-
-# Run with debug logging
-RUST_LOG=debug cargo run
+sudo systemctl enable searxng-rs
+sudo systemctl start searxng-rs
 ```
 
-## Feature Parity with SearXNG
+### Reverse Proxy (Nginx)
 
-This table compares the features of searxng-rs with the original [SearXNG](https://github.com/searxng/searxng) Python implementation.
+```nginx
+server {
+    listen 80;
+    server_name search.example.com;
 
-### Search Engines
+    location / {
+        proxy_pass http://localhost:8888;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
-| Category | searxng-rs | SearXNG |
-|----------|-----------|---------|
-| Total Engines | 9 | 215+ |
-| General Search | Google, Bing, DuckDuckGo, Brave, Wikipedia | Google, Bing, Brave, DuckDuckGo, Yandex, Qwant, Startpage, Yahoo, and many more |
-| Images | - | Google Images, Bing Images, Flickr, Unsplash, Pixabay, DeviantArt, and more |
-| Videos | YouTube | YouTube, Dailymotion, Vimeo, PeerTube, Invidious, Bilibili, and more |
-| News | - | Google News, Bing News, Reuters, Yahoo News, and more |
-| Maps | - | OpenStreetMap, Apple Maps |
-| IT/Code | GitHub, Stack Overflow | GitHub, GitLab, Gitea, NPM, PyPI, Crates.io, Docker Hub, and more |
-| Science/Academic | arXiv | arXiv, Google Scholar, PubMed, Crossref, Semantic Scholar, and more |
-| Music | - | Bandcamp, SoundCloud, Spotify, Deezer, and more |
-| Torrents/Files | - | Pirate Bay, 1337x, KickAss, and more |
-| Books | - | Anna's Archive, Z-Library, OpenLibrary, Goodreads |
-| Translation | - | DeepL, LibreTranslate, Lingva |
-| Shopping | - | eBay, Amazon integrations |
+## API Reference
 
-### Output Formats
+### Engine Trait
 
-| Format | searxng-rs | SearXNG |
-|--------|-----------|---------|
-| HTML | ✅ | ✅ |
-| JSON | ✅ | ✅ |
-| CSV | ✅ | ✅ |
-| RSS | ✅ | ✅ |
+All engines implement the `Engine` trait:
 
-### Plugins
+```rust
+pub trait Engine {
+    fn name(&self) -> &str;
+    fn about(&self) -> EngineAbout;
+    fn categories(&self) -> Vec<&str>;
+    fn supports_paging(&self) -> bool;
+    fn request(&self, params: &RequestParams) -> AnyhowResult<EngineRequest>;
+    fn response(&self, response: EngineResponse) -> AnyhowResult<EngineResults>;
+    
+    // Optional
+    fn init(&self) -> AnyhowResult<()>;
+    fn validate(&self, config: &EngineConfig) -> AnyhowResult<()>;
+    fn supports_time_range(&self) -> bool;
+    fn supports_safesearch(&self) -> bool;
+    fn timeout(&self) -> f64;
+    fn weight(&self) -> f64;
+    fn results_per_page(&self) -> usize;
+}
+```
 
-| Plugin | searxng-rs | SearXNG |
-|--------|-----------|---------|
-| Calculator | ✅ | ✅ |
-| Unit Converter | ✅ | ✅ |
-| Hash Generator | ✅ | ✅ |
-| Tracker URL Remover | ✅ | ✅ |
-| Self Info | - | ✅ |
-| Ahmia Filter | - | ✅ |
-| Hostnames Rewrite | - | ✅ |
-| Time Zone | - | ✅ |
-| Tor Check | - | ✅ |
-| Infinite Scroll | - | ✅ |
-| OA DOI Rewrite | - | ✅ |
+### Result Metadata
 
-### Autocomplete Backends
+```rust
+pub struct Result {
+    pub url: String,
+    pub title: String,
+    pub content: Option<String>,
+    pub engine: String,
+    pub engines: Vec<String>,
+    pub positions: Vec<usize>,
+    pub score: f64,
+    pub category: Option<String>,
+    pub result_type: ResultType,
+    pub metadata: ResultMetadata,
+}
 
-| Backend | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| DuckDuckGo | ✅ | ✅ |
-| Google | ✅ | ✅ |
-| Wikipedia | ✅ | ✅ |
-| Brave | ✅ | ✅ |
-| Qwant | ✅ | ✅ |
-| Other backends | - | 10+ more |
+pub struct ResultMetadata {
+    pub author: Option<String>,
+    pub published_date: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub homepage: Option<String>,
+    pub documentation: Option<String>,
+    pub source_code: Option<String>,
+    pub thumbnail: Option<String>,
+    pub views: Option<u64>,
+    pub stars: Option<u64>,
+    pub license: Option<String>,
+    pub version: Option<String>,
+    pub is_official: bool,
+}
+```
 
-### Query Syntax
+## Testing
 
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| Language filter (`:en`) | ✅ | ✅ |
-| Engine bangs (`!google`) | ✅ | ✅ |
-| Category bangs (`!images`) | ✅ | ✅ |
-| External bangs (`!g`, `!yt`) | ✅ | ✅ |
-| Timeout control (`<10`) | ✅ | - |
-| Safe search toggle | ✅ | ✅ |
-| Time range (`!day`, `!week`) | ✅ | ✅ |
-| First result redirect (`!!`) | ✅ | ✅ |
+```bash
+# Run all tests
+cargo test
 
-### Privacy Features
+# Run specific engine tests
+cargo test --lib engines::ahmia::tests
 
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| No user tracking | ✅ | ✅ |
-| Tracker URL removal | ✅ | ✅ |
-| Image proxy | ✅ | ✅ |
-| No referrer headers | ✅ | ✅ |
-| Tor support | - | ✅ |
-| Alternative frontend redirects | - | ✅ |
-| POST method option | - | ✅ |
+# Run with verbose output
+cargo test -- --nocapture
 
-### UI & Themes
+# Check for compilation errors
+cargo check
 
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| Themes | 1 (default) | Multiple (simple with auto/light/dark/black) |
-| Responsive design | ✅ | ✅ |
-| Preferences page | ✅ | ✅ |
-| Statistics page | ✅ | ✅ |
-| Hotkeys | - | ✅ (default + vim mode) |
-| Infinite scroll | - | ✅ |
+# Format code
+cargo fmt
 
-### Localization
+# Lint for issues
+cargo clippy
+```
 
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| Languages supported | 3 (en, de, fr) | 30+ |
-| RTL language support | - | ✅ |
-| Browser language detection | ✅ | ✅ |
+## Contributing
 
-### Configuration
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| YAML config file | ✅ | ✅ |
-| Environment variables | ✅ | ✅ |
-| Per-engine settings | ✅ | ✅ |
-| Rate limiting | ✅ | ✅ |
-| Redis/Valkey support | Partial | ✅ |
+### Adding New Engines
 
-### API & Monitoring
-
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| Health endpoint | ✅ | ✅ |
-| Statistics endpoint | ✅ | ✅ |
-| Engine metrics | ✅ | ✅ |
-| OpenMetrics export | - | ✅ |
-| Engine checker | - | ✅ |
-
-### Result Types
-
-| Type | searxng-rs | SearXNG |
-|------|-----------|---------|
-| Default (web) | ✅ | ✅ |
-| Images | ✅ | ✅ |
-| Videos | ✅ | ✅ |
-| News | ✅ | ✅ |
-| Maps | ✅ | ✅ |
-| Files | ✅ | ✅ |
-| Code | ✅ | ✅ |
-| Papers | ✅ | ✅ |
-| Infoboxes | ✅ | ✅ |
-| Answers (instant) | ✅ | ✅ |
-
-### Engine Count
-
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| Total Engines | **51** | 215+ |
-| Free Engines | 100% | ~80% |
-| API Key Engines | 3 (LinkedIn, GitHub, GitLab) | 50+ |
-
-### API Key Support
-
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| Required API Keys | ✅ LinkedIn Companies | ✅ Many |
-| Optional API Keys | ✅ GitHub, GitLab | ✅ Many |
-| Runtime Key Override | ✅ Yes | ✅ Yes |
-| Clear Error Messages | ✅ Web UI + JSON API | ⚠️ Basic |
-| Validation at Load | ✅ Yes | ⚠️ Partial |
-
-### Current Limitations
-
-- **Missing Categories:** Images, Videos, Maps, Music, Torrents, Books, Translation, Shopping
-- **Limited Engines:** 51 vs 215+ in SearXNG
-- **No Image Proxy:** Simplified implementation
-- **Basic Themes:** Single theme (simple)
-- **Limited Localization:** 3 languages (en, de, fr)
-
-**API Key Engines:**
-- LinkedIn Companies: Requires API key (disabled by default)
-- GitHub/GitLab: Optional API keys for higher rate limits
-- All other engines: Free, no API keys required
-| Connection pooling | ✅ | ✅ |
-| Result caching | ✅ (Moka) | ✅ (Valkey/Redis) |
-| Gzip/Brotli compression | ✅ | ✅ |
-| HTTP/2 support | ✅ | ✅ |
-
-### Deployment
-
-| Feature | searxng-rs | SearXNG |
-|---------|-----------|---------|
-| Docker images | ✅ (multi-arch) | ✅ |
-| Single binary | ✅ | - (Python) |
-| Memory footprint | Low | Higher |
+See `AGENTS.md` for detailed implementation guidelines.
 
 ## License
 
-AGPL-3.0 - See [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE) file for details
+
+## Acknowledgments
+
+- [SearXNG](https://github.com/searxng/searxng) - Original Python implementation
+- [Rust](https://www.rust-lang.org) - Systems programming language
+- [Tor Project](https://torproject.org) - Anonymous communication network
+- All contributors and maintainers
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/searxng-rs/searxng-rs/issues)
+- **Documentation**: [Wiki](https://github.com/searxng-rs/searxng-rs/wiki)
+- **Community**: [Discord](https://discord.gg/searxng-rs)
 
 ---
 
-## Quick Links
-
-- **[API Key Setup Guide](API_KEY_SETUP.md)** - Configure API keys
-- **[Developer Quick Ref](DEVELOPER_QUICK_REF.md)** - Add new engines
-- **[Agent Guide](AGENTS.md)** - Development guidelines
-- **[Engine Expansion Plan](ENGINE_EXPANSION_PLAN.md)** - Roadmap
-- **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Current status
-
-## Fork Information
-
-This repository is a fork maintained under the **Sempervictus** organization.  
-Original inspiration: [SearXNG](https://github.com/searxng/searxng)
-
-**Contact:** See repository for maintainers and support information.
+*Built with privacy and performance in mind.*

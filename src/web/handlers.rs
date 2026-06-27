@@ -11,6 +11,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tera::Context;
+use url::Url;
 
 /// Query parameters for search
 #[derive(Debug, Deserialize)]
@@ -40,10 +41,11 @@ pub struct SearchResponse {
     pub query: String,
     pub number_of_results: usize,
     pub results: Vec<ResultResponse>,
-    pub answers: Vec<String>,
+    pub answers: Vec<AnswerResponse>,
     pub suggestions: Vec<String>,
+    pub corrections: Vec<String>,
     pub infoboxes: Vec<serde_json::Value>,
-    pub unresponsive_engines: Vec<String>,
+    pub unresponsive_engines: Vec<UnresponsiveEngineResponse>,
     pub engine_errors: Vec<EngineError>,
 }
 
@@ -66,6 +68,14 @@ pub enum ErrorType {
     Other,
 }
 
+/// Unresponsive engine information
+#[derive(Debug, Serialize)]
+pub struct UnresponsiveEngineResponse {
+    pub engine: String,
+    pub error: String,
+}
+
+/// A single search result in JSON response
 #[derive(Debug, Serialize)]
 pub struct ResultResponse {
     pub url: String,
@@ -73,9 +83,71 @@ pub struct ResultResponse {
     pub content: Option<String>,
     pub engine: String,
     pub engines: Vec<String>,
+    pub positions: Vec<u32>,
     pub score: f64,
     pub category: Option<String>,
+    pub template: Option<String>,
+    pub img_src: Option<String>,
     pub thumbnail: Option<String>,
+    pub priority: Option<String>,
+    pub published_date: Option<String>,
+    pub author: Option<String>,
+    pub file_type: Option<String>,
+    pub file_size: Option<String>,
+    pub duration: Option<String>,
+    pub views: Option<u64>,
+    pub iframe_src: Option<String>,
+    pub audio_src: Option<String>,
+    pub is_official: bool,
+    pub version: Option<String>,
+    pub license: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub source_code: Option<String>,
+    pub homepage: Option<String>,
+    pub documentation: Option<String>,
+    pub last_update: Option<String>,
+    pub architecture: Option<String>,
+    pub package_name: Option<String>,
+    pub stars: Option<u64>,
+    pub forks: Option<u64>,
+    pub verified: Option<bool>,
+    pub severity: Option<String>,
+    pub cvss_score: Option<f64>,
+    pub modified_date: Option<String>,
+    pub archived: Option<bool>,
+    pub mirror: Option<bool>,
+    pub trending_score: Option<f64>,
+    pub library: Option<String>,
+    pub pipeline: Option<String>,
+    pub private: Option<bool>,
+    pub disabled: Option<bool>,
+    pub result_type: String,
+    pub parsed_url: ParsedUrlArray,
+}
+
+/// Parsed URL as array [scheme, domain, path, query, fragment, extra]
+#[derive(Debug, Serialize)]
+pub struct ParsedUrlArray(pub Vec<String>);
+
+impl From<&Url> for ParsedUrlArray {
+    fn from(url: &Url) -> Self {
+        Self(vec![
+            url.scheme().to_string(),
+            url.host_str().unwrap_or("").to_string(),
+            url.path().to_string(),
+            url.query().unwrap_or("").to_string(),
+            url.fragment().unwrap_or("").to_string(),
+            "".to_string(),
+        ])
+    }
+}
+
+/// Answer result in JSON response
+#[derive(Debug, Serialize)]
+pub struct AnswerResponse {
+    pub answer: String,
+    pub engine: String,
+    pub url: Option<String>,
 }
 
 /// Home page handler
@@ -92,8 +164,11 @@ pub async fn index(State(state): State<AppState>) -> impl IntoResponse {
     if let Some(color) = state.branding_accent_color() {
         ctx.insert("accent_color", color);
     }
-    if let Some(url) = state.branding_logo() {
+    if let Some(url) = state.branding.logo.as_ref() {
         ctx.insert("logo_url", url);
+    }
+    if let Some(data_uri) = state.branding.logo_data_uri.as_ref() {
+        ctx.insert("logo_data_uri", data_uri);
     }
     ctx.insert(
         "categories",
@@ -212,32 +287,101 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
                 number_of_results: ordered.len(),
                 results: ordered
                     .into_iter()
-                    .map(|r| ResultResponse {
-                        url: r.url,
-                        title: r.title,
-                        content: r.content,
-                        engine: r.engine,
-                        engines: r.engines.into_iter().collect(),
-                        score: r.score,
-                        category: r.category,
-                        thumbnail: r.metadata.thumbnail,
+                    .map(|r| {
+                        let parsed_url = r.parsed_url.as_ref().map(ParsedUrlArray::from);
+                        let result_type_str = match r.result_type {
+                            crate::results::ResultType::Default => "default",
+                            crate::results::ResultType::Image => "image",
+                            crate::results::ResultType::Video => "video",
+                            crate::results::ResultType::Map => "map",
+                            crate::results::ResultType::News => "news",
+                            crate::results::ResultType::Paper => "paper",
+                            crate::results::ResultType::File => "file",
+                            crate::results::ResultType::Code => "code",
+                            crate::results::ResultType::Answer => "answer",
+                            crate::results::ResultType::InfoBox => "infobox",
+                            crate::results::ResultType::Security => "security",
+                            crate::results::ResultType::Corporate => "corporate",
+                        };
+                        ResultResponse {
+                            url: r.url,
+                            title: r.title,
+                            content: r.content,
+                            engine: r.engine,
+                            engines: r.engines.into_iter().collect(),
+                            positions: r.positions,
+                            score: r.score,
+                            category: r.category,
+                            template: r.metadata.template,
+                            img_src: r.metadata.img_src,
+                            thumbnail: r.metadata.thumbnail,
+                            priority: None, // Could be added if needed
+                            published_date: r.metadata.published_date,
+                            author: r.metadata.author,
+                            file_type: r.metadata.file_type,
+                            file_size: r.metadata.file_size,
+                            duration: r.metadata.duration,
+                            views: r.metadata.views,
+                            iframe_src: r.metadata.iframe_src,
+                            audio_src: r.metadata.audio_src,
+                            is_official: r.metadata.is_official,
+                            version: r.metadata.version,
+                            license: r.metadata.license,
+                            tags: r.metadata.tags,
+                            source_code: r.metadata.source_code,
+                            homepage: r.metadata.homepage,
+                            documentation: r.metadata.documentation,
+                            last_update: r.metadata.last_update,
+                            architecture: r.metadata.architecture,
+                            package_name: r.metadata.package_name,
+                            stars: r.metadata.stars,
+                            forks: r.metadata.forks,
+                            verified: r.metadata.verified,
+                            severity: r.metadata.severity,
+                            cvss_score: r.metadata.cvss_score,
+                            modified_date: r.metadata.modified_date,
+                            archived: r.metadata.archived,
+                            mirror: r.metadata.mirror,
+                            trending_score: r.metadata.trending_score,
+                            library: r.metadata.library,
+                            pipeline: r.metadata.pipeline,
+                            private: r.metadata.private,
+                            disabled: r.metadata.disabled,
+                            result_type: result_type_str.to_string(),
+                            parsed_url: parsed_url.unwrap_or_else(|| ParsedUrlArray(vec![
+                                "".to_string(),
+                                "".to_string(),
+                                "".to_string(),
+                                "".to_string(),
+                                "".to_string(),
+                                "".to_string(),
+                            ])),
+                        }
                     })
                     .collect(),
                 answers: results
                     .get_answers()
                     .into_iter()
-                    .map(|a| a.answer)
+                    .map(|a| AnswerResponse {
+                        answer: a.answer,
+                        engine: a.engine,
+                        url: a.url,
+                    })
                     .collect(),
                 suggestions: results
                     .get_suggestions()
                     .into_iter()
                     .map(|s| s.text)
                     .collect(),
-                infoboxes: vec![],
+                corrections: vec![], // Could be added if needed
+                infoboxes: vec![], // Could be populated if needed
                 unresponsive_engines: results
                     .get_unresponsive()
                     .into_iter()
-                    .map(|e| e.name)
+                    .map(|e| UnresponsiveEngineResponse {
+                        engine: e.name,
+                        error: e.error.to_string(),
+                    })
                     .collect(),
                 engine_errors,
             };
@@ -273,9 +417,12 @@ pub async fn search(State(state): State<AppState>, Query(params): Query<SearchPa
             if let Some(color) = state.branding_accent_color() {
                 ctx.insert("accent_color", color);
             }
-            if let Some(url) = state.branding_logo() {
-                ctx.insert("logo_url", url);
-            }
+if let Some(url) = state.branding.logo.as_ref() {
+        ctx.insert("logo_url", url);
+    }
+    if let Some(data_uri) = state.branding.logo_data_uri.as_ref() {
+        ctx.insert("logo_data_uri", data_uri);
+    }
             ctx.insert("query", &raw_query);
             ctx.insert("results", &ordered);
             ctx.insert("answers", &results.get_answers());
@@ -321,6 +468,21 @@ pub async fn about(State(state): State<AppState>) -> impl IntoResponse {
         Err(e) => {
             tracing::error!("Template error: {}", e);
             Html("<h1>About</h1><p>SearXNG-RS</p>".to_string())
+        }
+    }
+}
+
+/// Usage page handler
+pub async fn usage(State(state): State<AppState>) -> impl IntoResponse {
+    let mut ctx = Context::new();
+    ctx.insert("instance_name", state.instance_name());
+    ctx.insert("version", crate::VERSION);
+
+    match state.templates.render_with_context("usage.html", &ctx) {
+        Ok(html) => Html(html),
+        Err(e) => {
+            tracing::error!("Template error: {}", e);
+            Html("<h1>Usage Guide</h1><p>Query syntax and API documentation.</p>".to_string())
         }
     }
 }
@@ -431,4 +593,129 @@ pub async fn favicon() -> impl IntoResponse {
         ],
         FAVICON_SVG,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parsed_url_array_serialization() {
+        let parsed_url = ParsedUrlArray(vec![
+            "https".to_string(),
+            "example.com".to_string(),
+            "/path".to_string(),
+            "query=1".to_string(),
+            "fragment".to_string(),
+            "".to_string(),
+        ]);
+
+        let serialized = serde_json::to_string(&parsed_url).unwrap();
+        assert_eq!(serialized, r#"["https","example.com","/path","query=1","fragment",""]"#);
+    }
+
+    #[test]
+    fn test_result_response_has_all_required_fields() {
+        let result = ResultResponse {
+            url: "https://example.com".to_string(),
+            title: "Example".to_string(),
+            content: Some("Content".to_string()),
+            engine: "duckduckgo".to_string(),
+            engines: vec!["duckduckgo".to_string()],
+            positions: vec![1],
+            score: 1.0,
+            category: Some("general".to_string()),
+            template: Some("default.html".to_string()),
+            img_src: None,
+            thumbnail: None,
+            priority: Some("".to_string()),
+            published_date: None,
+            author: None,
+            file_type: None,
+            file_size: None,
+            duration: None,
+            views: None,
+            iframe_src: None,
+            audio_src: None,
+            is_official: false,
+            version: None,
+            license: None,
+            tags: None,
+            source_code: None,
+            homepage: None,
+            documentation: None,
+            last_update: None,
+            architecture: None,
+            package_name: None,
+            stars: None,
+            forks: None,
+            verified: None,
+            severity: None,
+            cvss_score: None,
+            modified_date: None,
+            archived: None,
+            mirror: None,
+            trending_score: None,
+            library: None,
+            pipeline: None,
+            private: None,
+            disabled: None,
+            result_type: "default".to_string(),
+            parsed_url: ParsedUrlArray(vec![
+                "https".to_string(),
+                "example.com".to_string(),
+                "/".to_string(),
+                "".to_string(),
+                "".to_string(),
+                "".to_string(),
+            ]),
+        };
+
+        let serialized = serde_json::to_value(&result).unwrap();
+        
+        assert!(serialized.get("url").is_some());
+        assert!(serialized.get("title").is_some());
+        assert!(serialized.get("content").is_some());
+        assert!(serialized.get("engine").is_some());
+        assert!(serialized.get("engines").is_some());
+        assert!(serialized.get("positions").is_some());
+        assert!(serialized.get("score").is_some());
+        assert!(serialized.get("category").is_some());
+        assert!(serialized.get("template").is_some());
+        assert!(serialized.get("img_src").is_some());
+        assert!(serialized.get("thumbnail").is_some());
+        assert!(serialized.get("priority").is_some());
+        assert!(serialized.get("parsed_url").is_some());
+        
+        let parsed_url = serialized.get("parsed_url").unwrap();
+        assert!(parsed_url.is_array());
+        assert_eq!(parsed_url.as_array().unwrap().len(), 6);
+    }
+
+    #[test]
+    fn test_search_response_structure() {
+        let response = SearchResponse {
+            query: "test".to_string(),
+            number_of_results: 10,
+            results: vec![],
+            answers: vec![],
+            suggestions: vec![],
+            corrections: vec![],
+            infoboxes: vec![],
+            unresponsive_engines: vec![],
+            engine_errors: vec![],
+        };
+
+        let serialized = serde_json::to_value(&response).unwrap();
+        
+        assert!(serialized.get("query").is_some());
+        assert!(serialized.get("number_of_results").is_some());
+        assert!(serialized.get("results").is_some());
+        assert!(serialized.get("answers").is_some());
+        assert!(serialized.get("suggestions").is_some());
+        assert!(serialized.get("corrections").is_some());
+        assert!(serialized.get("infoboxes").is_some());
+        assert!(serialized.get("unresponsive_engines").is_some());
+        assert!(serialized.get("engine_errors").is_some());
+    }
 }

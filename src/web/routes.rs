@@ -17,6 +17,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/", get(handlers::index))
         .route("/search", get(handlers::search))
         .route("/about", get(handlers::about))
+        .route("/usage", get(handlers::usage))
         .route(
             "/preferences",
             get(handlers::preferences).post(handlers::preferences),

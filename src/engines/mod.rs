@@ -4,8 +4,8 @@
 
 mod api_key_validator;
 mod loader;
-mod registry;
-mod traits;
+pub mod registry;
+pub mod traits;
 
 // Engine implementations
 pub mod ahmia;

@@ -1,6 +1,6 @@
 [package]
 name = "searxng-rs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["SearXNG-RS Contributors"]
 description = "A privacy-respecting metasearch engine written in Rust"
@@ -17,7 +17,7 @@ tower = "0.4"
 tower-http = { version = "0.5", features = ["cors", "fs", "compression-gzip"] }
 
 # HTTP client
-reqwest = { version = "0.11", features = ["json", "cookies", "gzip", "brotli", "blocking"] }
+reqwest = { version = "0.11", features = ["json", "cookies", "gzip", "brotli", "blocking", "socks"] }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -54,6 +54,7 @@ base64 = "0.21"
 sha2 = "0.10"
 hmac = "0.12"
 urlencoding = "2.1"
+serde_urlencoded = "0.7"
 md5 = "0.7"
 dirs = "5.0"
 
@@ -62,6 +63,7 @@ governor = "0.6"
 
 # Caching
 moka = { version = "0.12", features = ["future"] }
+dashmap = "5.5"
 
 # Internationalization
 fluent = "0.16"

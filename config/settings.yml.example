@@ -30,6 +30,24 @@ server:
   bind_address: "127.0.0.1"
   secret_key: "change-me-in-production-use-randgen"
 
+# Branding Configuration
+# ======================
+# Customize the appearance of your search engine
+# Environment variables can override these settings:
+# - SEARXNG_BRANDING_NAME
+# - SEARXNG_BRANDING_LOGO
+# - SEARXNG_BRANDING_TAGLINE
+# - SEARXNG_BRANDING_ACCENT_COLOR
+branding:
+  # Brand name to display (defaults to instance_name if not set)
+  name: "SearXNG-RS"
+  # Logo URL (optional) - can be a local path or external URL
+  logo: "/assets/logo.svg"
+  # Tagline or description displayed below the logo
+  tagline: "Privacy-respecting metasearch engine"
+  # Accent color for UI customization (hex color code)
+  accent_color: "#e94560"
+
 # Engine Categories
 # =================
 #
@@ -49,63 +67,77 @@ engines:
     engine: google
     shortcut: g
     default_enabled: true
-    categories: general,web
+    categories:
+      - general
+      - web
 
   # Google Images - Image search
   - name: google_images
     engine: google_images
     shortcut: gi
     default_enabled: false
-    categories: images
+    categories:
+      - images
 
   # Google News - News aggregation
   - name: google_news
     engine: google_news
     shortcut: gn
     default_enabled: false
-    categories: news
+    categories:
+      - news
 
   # Bing - Microsoft search engine
   - name: bing
     engine: bing
     shortcut: bi
     default_enabled: true
-    categories: general,web
+    categories:
+      - general
+      - web
 
   # Bing Images - Image search
   - name: bing_images
     engine: bing_images
     shortcut: bi
     default_enabled: false
-    categories: images
+    categories:
+      - images
 
   # DuckDuckGo - Privacy-focused search
   - name: duckduckgo
     engine: duckduckgo
     shortcut: ddg
     default_enabled: true
-    categories: general,web
+    categories:
+      - general
+      - web
 
   # Brave - Privacy-focused search
   - name: brave
     engine: brave
     shortcut: br
     default_enabled: false
-    categories: general,web
+    categories:
+      - general
+      - web
 
   # Wikipedia - Encyclopedia
   - name: wikipedia
     engine: wikipedia
     shortcut: wp
     default_enabled: true
-    categories: general,web
+    categories:
+      - general
+      - web
 
   # YouTube - Video search
   - name: youtube
     engine: youtube
     shortcut: yt
     default_enabled: false
-    categories: videos
+    categories:
+      - videos
 
   # ========== ACADEMIC & RESEARCH ==========
 
@@ -114,86 +146,118 @@ engines:
     engine: arxiv
     shortcut: ax
     default_enabled: true
-    categories: science,scientific publications
+    categories:
+      - science
+      - academic
 
   # Semantic Scholar - AI-driven academic search
   - name: semantic_scholar
     engine: semantic_scholar
     shortcut: ss
     default_enabled: true
-    categories: science,scientific publications,academic
+    categories:
+      - science
+      - academic
+      - publications
 
   # OpenAlex - Open research metadata
   - name: openalex
     engine: openalex
     shortcut: oa
     default_enabled: true
-    categories: science,scientific publications,academic
-    # Recommended: join the polite pool with your email
-    # mailto: "your_email@example.com"
+    categories:
+      - science
+      - academic
+      - publications
 
   # Crossref - Scholarly metadata & DOI
   - name: crossref
     engine: crossref
     shortcut: cr
     default_enabled: true
-    categories: science,scientific publications,academic
+    categories:
+      - science
+      - academic
+      - publications
 
   # Google Scholar - Academic paper search
   - name: google_scholar
     engine: google_scholar
     shortcut: gs
     default_enabled: true
-    categories: science,scientific publications,academic
+    categories:
+      - science
+      - academic
+      - publications
 
   # PubMed - Biomedical literature
   - name: pubmed
     engine: pubmed
     shortcut: pub
     default_enabled: true
-    categories: science,scientific publications,medical
+    categories:
+      - science
+      - academic
+      - medical
 
   # Protein Data Bank - 3D structural biology
   - name: pdbe
     engine: pdbe
     shortcut: pdb
     default_enabled: true
-    categories: science,biology,chemistry
+    categories:
+      - science
+      - biology
+      - chemistry
 
   # BASE - Academic web resources
   - name: base
     engine: base
     shortcut: base
     default_enabled: true
-    categories: science,academic,research
+    categories:
+      - science
+      - academic
+      - research
 
   # SCANR Structures - French academic structures
   - name: scanr_structures
     engine: scanr_structures
     shortcut: scanr
     default_enabled: false
-    categories: science,academic
+    categories:
+      - science
+      - academic
 
   # NVD - Security vulnerabilities
   - name: nvd
     engine: nvd
     shortcut: nvd
     default_enabled: true
-    categories: it,security,vulnerabilities
+    categories:
+      - it
+      - security
+      - vulnerabilities
 
   # Hugging Face - ML models & datasets
   - name: huggingface
     engine: huggingface
     shortcut: hf
     default_enabled: true
-    categories: it,ai,machine learning
+    categories:
+      - it
+      - ai
+      - machine_learning
 
   # Ollama - Local LLM models
   - name: ollama
     engine: ollama
     shortcut: ol
     default_enabled: false
-    categories: it,ai,machine learning
+    categories:
+      - it
+      - ai
+      - machine_learning
 
   # ========== CODE & DEVELOPMENT ==========
   # GitHub - Code hosting
@@ -202,7 +266,10 @@ engines:
     engine: github
     shortcut: gh
     default_enabled: true
-    categories: it,code,software
+    categories:
+      - it
+      - code
+      - software
     # Uncomment and configure when you have API key:
     # api_key: "your_github_api_token"
 
@@ -212,7 +279,10 @@ engines:
     engine: gitlab
     shortcut: gl
     default_enabled: true
-    categories: it,code,software
+    categories:
+      - it
+      - code
+      - software
     # Uncomment and configure when you have API key:
     # api_key: "your_gitlab_private_token"
 
@@ -221,91 +291,131 @@ engines:
     engine: gitea
     shortcut: gt
     default_enabled: false
-    categories: it,code,software
+    categories:
+      - it
+      - code
+      - software
 
   # Stack Overflow - Programming Q&A
   - name: stackoverflow
     engine: stackoverflow
     shortcut: so
     default_enabled: true
-    categories: it,code,software
+    categories:
+      - it
+      - code
+      - software
 
   # Crates.io - Rust package registry
   - name: crates
     engine: crates
     shortcut: crate
     default_enabled: true
-    categories: it,packages,rust
+    categories:
+      - it
+      - packages
+      - rust
 
   # PyPI - Python package index
   - name: pypi
     engine: pypi
     shortcut: pypi
     default_enabled: true
-    categories: it,packages,python
+    categories:
+      - it
+      -  packages
+      - python
 
   # npm - JavaScript package registry
   - name: npm
     engine: npm
     shortcut: npm
     default_enabled: true
-    categories: it,packages,javascript
+    categories:
+      - it
+      - packages
+      - javascript
 
   # hex.pm - Elixir/Erlang packages
   - name: hex
     engine: hex
     shortcut: hex
     default_enabled: false
-    categories: it,packages,elixir
+    categories:
+      - it
+      - packages
+      - elixir
 
   # Docker Hub - Container registry
   - name: docker_hub
     engine: docker_hub
     shortcut: docker
     default_enabled: true
-    categories: it,packages,docker,containers
+    categories:
+      - it
+      - packages
+      - docker
+      - containers
 
   # pkg.go.dev - Go packages
   - name: pkg_go_dev
     engine: pkg_go_dev
     shortcut: go
     default_enabled: true
-    categories: it,packages,go
+    categories:
+      - it
+      - packages
+      - go
 
   # FDroid - Android apps
   - name: fdroid
     engine: fdroid
     shortcut: fdroid
     default_enabled: false
-    categories: it,packages,android
+    categories:
+      - it
+      - packages
+      - android
 
   # APKMirror - Android APKs
   - name: apkmirror
     engine: apkmirror
     shortcut: apk
     default_enabled: false
-    categories: it,packages,android
+    categories:
+      - it
+      - packages
+      - android
 
   # MetaCPAN - Perl packages
   - name: metacpan
     engine: metacpan
     shortcut: cpan
     default_enabled: false
-    categories: it,packages,perl
+    categories:
+      - it
+      - packages
+      - perl
 
   # Lib.rs - Rust documentation
   - name: lib_rs
     engine: lib_rs
     shortcut: librs
     default_enabled: false
-    categories: it,documentation,rust
+    categories:
+      - it
+      - documentation
+      - rust
 
   # Repology - Package tracker
   - name: repology
     engine: repology
     shortcut: rep
     default_enabled: true
-    categories: it,packages,linux
+    categories:
+      - it
+      - packages
+      - linux
 
   # ========== OPERATING SYSTEM PACKAGES ==========
 
@@ -314,28 +424,40 @@ engines:
     engine: archlinux
     shortcut: arch
     default_enabled: true
-    categories: it,packages,linux
+    categories:
+      - it
+      - packages
+      - linux
 
   # Alpine Linux - Package search
   - name: alpinelinux
     engine: alpinelinux
     shortcut: alpine
     default_enabled: false
-    categories: it,packages,linux
+    categories:
+      - it
+      - packages
+      - linux
 
   # Void Linux - Package search
   - name: voidlinux
     engine: voidlinux
     shortcut: void
     default_enabled: false
-    categories: it,packages,linux
+    categories:
+      - it
+      - packages
+      - linux
 
   # CachyOS - Package search
   - name: cachy_os
     engine: cachy_os
     shortcut: cachy
     default_enabled: false
-    categories: it,packages,linux
+    categories:
+      - it
+      - packages
+      - linux
 
   # ========== NEWS & MEDIA ==========
 
@@ -344,35 +466,48 @@ engines:
     engine: reuters
     shortcut: reuters
     default_enabled: true
-    categories: news,media
+    categories:
+      - news
+      - media
 
   # Bloomberg - Business news
   - name: bloomberg
     engine: bloomberg
     shortcut: bloomberg
     default_enabled: true
-    categories: news,business,financial
+    categories:
+      - news
+      - business
+      - financial
 
   # AP News - Associated Press
   - name: ap_news
     engine: ap_news
     shortcut: ap
     default_enabled: true
-    categories: news,media
+    categories:
+      - news
+      - media
 
   # Fortune 500 - Corporate rankings
   - name: fortune500
     engine: fortune500
     shortcut: fortune
     default_enabled: false
-    categories: news,business,corporate
+    categories:
+      - news
+      - business
+      - corporate
 
   # WSJ - Wall Street Journal
-  - name: wsj
+  - name: ws
     engine: wsj
     shortcut: wsj
     default_enabled: false
-    categories: news,business,financial
+    categories:
+      - news
+      - business
+      - financial
 
   # ========== CORPORATE & BUSINESS RESEARCH ==========
 
@@ -381,54 +516,81 @@ engines:
     engine: opencorporates
     shortcut: oc
     default_enabled: true
-    categories: corporate,business,companies,entities
+    categories:
+      - corporate
+      - business
+      - companies
+      - entities
 
   # IMDb - Movie & entertainment database
   - name: imdb
     engine: imdb
     shortcut: imdb
     default_enabled: false
-    categories: movies,corporate
+    categories:
+      - movies
+      - corporate
 
   # SEC EDGAR - US public company filings
   - name: sec_edgar
     engine: sec_edgar
     shortcut: sec
     default_enabled: true
-    categories: corporate,business,financial,sec,filings
+    categories:
+      - corporate
+      - business
+      - financial
+      - sec
+      - filings
 
   # Crunchbase - Startup & VC data
   - name: crunchbase
     engine: crunchbase
     shortcut: cb
     default_enabled: true
-    categories: corporate,business,startups,investments
+    categories:
+      - corporate
+      - business
+      - startups
+      - investments
 
   # LinkedIn Companies - Corporate profiles
-  # ⚠️ Requires LinkedIn API key - disable by default
+  #  Requires LinkedIn API key - disable by default
   - name: linkedin_companies
     engine: linkedin_companies
     shortcut: li
     default_enabled: false
-    categories: corporate,business,companies
+    categories:
+      - corporate
+      - business
+      - companies
     # Uncomment and configure when you have API key:
     # api_key: "your_linkedin_api_key"
 
   # ========== SECURITY & PRIVACY ==========
 
   # Ahmia - Tor/.onion search
+  # Note: Requires Tor network access. 
+  # This engine is disabled by default (default_enabled: false).
+  # It is only included in the 'tor' category, which is not searched by default.
+  # To use this engine, you must explicitly request it via ?engines=ahmia or ?categories=tor
+  # AND have a Tor proxy configured in your network settings.
   - name: ahmia
     engine: ahmia
     shortcut: ah
     default_enabled: false
-    categories: general,tor,security
+    categories:
+      - tor
 
   # SourceHut - Privacy-focused code hosting
   - name: sourcehut
     engine: sourcehut
     shortcut: sh
     default_enabled: false
-    categories: it,code,privacy
+    categories:
+      - it
+      - code
+      - privacy
 
 # ========== AUTOCOMPLETE ==========
 # Autocomplete backends for search suggestions
@@ -444,14 +606,12 @@ autocomplete:
 # ========== PLUGIN CONFIGURATION ==========
 
 plugins:
-  # Calculator - Mathematical expressions
-  - calculator
-  # Unit converter - Physical quantities
-  - unit_converter
-  # Hash generator - MD5, SHA256, etc.
-  - hash_plugin
-  # Tracker remover - Strip tracking parameters
-  - tracker_remover
+  enabled:
+    - calculator
+    - unit_converter
+    - hash_plugin
+    - tracker_remover
+  disabled: []
 
 # ========== RATE LIMITING ==========
 

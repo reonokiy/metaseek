@@ -81,14 +81,21 @@ GET /search?q={query}&format=json
 | Param | Type | Description | Default |
 |-------|------|-------------|---------|
 | `q` | string | Search query | **Required** |
-| `format` | string | Output format (`json`, `html`, `csv`) | `json` |
-| `categories` | string | Comma-separated categories | All |
-| `engines` | string | Comma-separated engine names | All |
-| `language` | string | Language code (e.g., `en`, `de`, `fr`) | `auto` |
+| `format` | string | Output format (`json`, `html`, `csv`) | `html` |
+| `categories` | string | Comma-separated live engine categories | `general` |
+| `engines` | string | Comma-separated registered engine names; overrides category selection | By category |
+| `language` | string | Language code (e.g., `en`, `de`, `fr`) | `all` |
 | `safesearch` | int | `0` (off), `1` (moderate), `2` (strict) | `0` |
-| `time_range` | string | `day`, `week`, `month`, `year` | None |
-| `pageno` | int | Page number | `1` |
-| `num` | int | Results per page | `10` |
+| `time_range` | string | `day`, `week`, `month`, `year`; empty/`anytime` clears the filter | None |
+| `pageno` | int | Page number, 1–1000 | `1` |
+
+HTTP selectors override query bangs. Empty comma-separated selectors are treated as
+omitted. Explicit engines take precedence over categories for selection; a matching
+requested category is retained, otherwise the engine's primary category is used.
+Unknown/unavailable explicit selectors return HTTP 400. Engines are deduplicated.
+Time filtering is forwarded to engine adapters; enforcement depends on the upstream
+engine's actual filtering support, not merely its capability declaration.
+`num` and POST `/search` are not supported by this API.
 
 ### Example Request (cURL)
 ```bash
@@ -234,20 +241,29 @@ curl -X POST http://127.0.0.1:8888/mcp \
   "score": 2.5,
   "category": "general",
   "parsed_url": ["https", "example.com", "/", "", "", ""],
-  "metadata": {
-    "author": "Jane Doe",
-    "published_date": "2024-01-15",
-    "tags": ["rust", "programming"],
-    "thumbnail": "https://example.com/thumb.jpg",
-    "is_official": true
-  }
+  "author": "Jane Doe",
+  "publishedDate": "2024-01-15T00:00:00Z",
+  "published_date": "2024-01-15T00:00:00Z",
+  "tags": ["rust", "programming"],
+  "thumbnail": "https://example.com/thumb.jpg",
+  "is_official": true
 }
 ```
 
 ### Error Handling
 - **`engine_errors`**: Array of objects with `engine`, `error`, `error_type`.
 - **`unresponsive_engines`**: List of engines that timed out.
-- **HTTP Status**: `200` even if errors occur; check `engine_errors` in JSON.
+- **HTTP Status**: `200` for successful searches (including zero results) and partial
+  engine failures; check `engine_errors`. `502` if all attempted engines fail; `503`
+  if no engine is available. Invalid parameters return `400` with
+  `{"error":{"message":"..."}}`.
+- JSON requests with empty queries return `400`, not an HTML redirect. External
+  redirect bangs are rejected in JSON mode; redirect-to-first is suppressed.
+- JSON results omit invalid/non-HTTP(S) URLs, normalize missing content to `""`
+  and missing category to `general`, and use `img_src` as a thumbnail fallback.
+- Both `publishedDate` (LobeHub) and legacy `published_date` are returned.
+- `number_of_results` is the count of returned, validated results, not an upstream
+  estimate of total matches.
 
 Example error response:
 ```json
@@ -327,7 +343,7 @@ export ALL_PROXY=socks5h://127.0.0.1:9050
 | Issue | Solution |
 |-------|----------|
 | **No results** | Check `engine_errors` in JSON; verify query syntax. |
-| **Timeout** | Increase `--time_range` or reduce `num` results. |
+| **Timeout** | Review outgoing/per-engine timeout configuration and upstream availability; `time_range` is a date filter, not a timeout. |
 | **API Key Error** | Configure `api_key` in `metaseek.yml` or pass via env. |
 | **Tor Engine Fails** | Ensure `ALL_PROXY` is set and Tor is running. |
 | **Wrong Format** | Always use `&format=json` in API or `--query` in CLI. |

@@ -175,10 +175,19 @@ impl Engine for DuckDuckGo {
 
     fn response(&self, response: EngineResponse) -> AnyhowResult<EngineResults> {
         if !response.is_success() {
+            // DDG's challenge/anomaly pages carry their own explanatory body;
+            // classify them so the refusal reason is not lost.
+            response.classify(0, false, self.name())?;
             return Err(anyhow::anyhow!("HTTP error: {}", response.status));
         }
 
         let results = self.parse_html_results(&response.text);
+
+        // When DDG refuses a client it still answers 200 with its challenge /
+        // no-results shell. Zero parsed results from a body that contains no
+        // `web-result` container at all is a refusal, not an empty SERP.
+        response.classify(results.len(), false, self.name())?;
+
         Ok(EngineResults::with_results(results))
     }
 }
@@ -294,5 +303,37 @@ mod tests {
         let request = ddg.request(&params).unwrap();
 
         assert!(request.url.contains("duckduckgo.com"));
+    }
+
+    fn html_response(status: u16, body: &str) -> EngineResponse {
+        EngineResponse {
+            status,
+            headers: HashMap::new(),
+            text: body.to_string(),
+            url: "https://html.duckduckgo.com/html/".to_string(),
+        }
+    }
+
+    #[test]
+    fn test_ddg_non_html_body_is_a_parse_failure() {
+        let ddg = DuckDuckGo::new();
+        let err = ddg
+            .response(html_response(200, "upstream temporarily unavailable"))
+            .unwrap_err();
+        assert!(
+            err.to_string().contains("Failed to parse"),
+            "non-HTML body should be a parse failure, got: {}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_ddg_small_empty_serp_is_not_an_error() {
+        let ddg = DuckDuckGo::new();
+        let body = r#"<!DOCTYPE html><html><body><div id="links"></div>
+            <p>No results.</p></body></html>"#;
+
+        let results = ddg.response(html_response(200, body)).unwrap();
+        assert!(results.results.is_empty());
     }
 }

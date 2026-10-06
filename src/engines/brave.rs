@@ -175,10 +175,19 @@ impl Engine for Brave {
 
     fn response(&self, response: EngineResponse) -> AnyhowResult<EngineResults> {
         if !response.is_success() {
+            // Brave signals throttling with 429 and a body that says so. Let the
+            // classifier name it rather than reporting a bare HTTP error.
+            response.classify(0, false, self.name())?;
             return Err(anyhow::anyhow!("HTTP error: {}", response.status));
         }
 
         let results = self.parse_results(&response.text);
+
+        // Brave answers throttled clients with a 200/429 page that carries no
+        // result containers but does carry anti-bot markers. Surface that as a
+        // rate-limit / refusal instead of an empty (but "successful") search.
+        response.classify(results.len(), false, self.name())?;
+
         Ok(EngineResults::with_results(results))
     }
 }
@@ -195,5 +204,57 @@ mod tests {
 
         assert!(request.url.contains("brave.com"));
         assert!(request.params.contains_key("q"));
+    }
+
+    fn response_with(status: u16, body: &str) -> EngineResponse {
+        EngineResponse {
+            status,
+            headers: HashMap::new(),
+            text: body.to_string(),
+            url: "https://search.brave.com/search".to_string(),
+        }
+    }
+
+    #[test]
+    fn test_brave_429_is_reported_as_too_many_requests() {
+        let brave = Brave::new();
+        let body = r#"<!DOCTYPE html><html><head><title>Brave Search</title></head>
+            <body><div class="Blocked">Blocked</div>
+            <p>You have sent too many requests. Please slow down.</p></body></html>"#;
+
+        let err = brave.response(response_with(429, body)).unwrap_err();
+        assert!(
+            err.to_string().contains("TooManyRequests"),
+            "throttled response should be reported as rate limited, got: {}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_brave_captcha_wall_is_reported_as_captcha() {
+        let brave = Brave::new();
+        let body = r#"<!DOCTYPE html><html><head><title>Brave Search</title></head>
+            <body><div class="Blocked">Blocked</div>
+            <p>Please solve the CAPTCHA to continue</p></body></html>"#;
+
+        let err = brave.response(response_with(429, body)).unwrap_err();
+        assert!(
+            err.to_string().contains("CAPTCHA"),
+            "captcha wall should be reported as CAPTCHA, got: {}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_brave_200_without_containers_is_a_parse_failure() {
+        let brave = Brave::new();
+        let body = format!("<!DOCTYPE html><html><body>{}</body></html>", "x".repeat(30_000));
+
+        let err = brave.response(response_with(200, &body)).unwrap_err();
+        assert!(
+            err.to_string().contains("Failed to parse"),
+            "oversized body with no containers should be a parse failure, got: {}",
+            err
+        );
     }
 }

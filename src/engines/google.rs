@@ -208,7 +208,28 @@ impl Engine for Google {
             return Err(anyhow::anyhow!("CAPTCHA detected"));
         }
 
+        // Google serves a JS bootstrap/interstitial page (HTTP 200, no CAPTCHA
+        // text) to clients it will not render results for. Report it instead of
+        // returning an empty result set that looks like a successful search.
+        if response.is_js_gated() {
+            return Err(anyhow::anyhow!(
+                "Blocked: Google returned a JavaScript-gated interstitial \
+                 (datacenter/cloud IP ranges are commonly refused server-rendered results)"
+            ));
+        }
+
         let results = self.parse_results(&response.text, self.name());
+
+        // A response this large containing zero matchable result containers means
+        // the HTML layout no longer matches our selectors, not that the query had
+        // no matches. Surface it so the engine is reported as unresponsive.
+        if response.looks_unparsed(results.len()) {
+            return Err(anyhow::anyhow!(
+                "Failed to parse response: {} bytes of HTML matched no result container",
+                response.text.len()
+            ));
+        }
+
         Ok(EngineResults::with_results(results))
     }
 }
@@ -555,5 +576,65 @@ mod tests {
 
         assert!(request.url.contains("google.com"));
         assert!(request.params.contains_key("q"));
+    }
+
+    /// A JS-gated interstitial must be reported as an error, not as an empty
+    /// but successful result set. Regression test for the datacenter-IP case
+    /// where Google answers 200 with a bootstrap page.
+    #[test]
+    fn js_gated_interstitial_is_an_error() {
+        let google = Google::new();
+        let html = r#"<!DOCTYPE html><html><head><title>Google Search</title></head>
+            <body><noscript><meta content="0;url=/httpservice/retry/enablejs?sei=abc"
+            http-equiv="refresh"></noscript>
+            <div id="yvlrue">If you're having trouble accessing Google Search,
+            please click here&emsg=SG_REL&sei=abc</div></body></html>"#;
+        let response = EngineResponse {
+            status: 200,
+            headers: HashMap::new(),
+            text: html.to_string(),
+            url: "https://www.google.com/search?q=rust".to_string(),
+        };
+
+        assert!(response.is_js_gated());
+        assert!(
+            !response.is_captcha(),
+            "gated page carries no CAPTCHA wording"
+        );
+        let error = google.response(response).unwrap_err().to_string();
+        assert!(error.contains("Blocked"), "unexpected error: {error}");
+    }
+
+    /// A large body that matches no result container is a parse failure, so the
+    /// engine gets reported as unresponsive instead of silently contributing
+    /// zero results.
+    #[test]
+    fn oversized_unparsed_body_is_an_error() {
+        let google = Google::new();
+        let response = EngineResponse {
+            status: 200,
+            headers: HashMap::new(),
+            text: format!("<html><body>{}</body></html>", "x".repeat(25_000)),
+            url: "https://www.google.com/search?q=rust".to_string(),
+        };
+
+        let error = google.response(response).unwrap_err().to_string();
+        assert!(error.contains("Failed to parse response"), "got: {error}");
+    }
+
+    /// A small, genuinely empty SERP stays a successful search with no results.
+    #[test]
+    fn small_empty_serp_is_not_an_error() {
+        let google = Google::new();
+        let response = EngineResponse {
+            status: 200,
+            headers: HashMap::new(),
+            text: "<html><body><p>Your search did not match any documents.</p></body></html>"
+                .to_string(),
+            url: "https://www.google.com/search?q=zzzz".to_string(),
+        };
+
+        let results = google.response(response).unwrap();
+        assert!(results.results.is_empty());
     }
 }

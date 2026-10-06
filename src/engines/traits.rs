@@ -215,6 +215,146 @@ impl EngineResponse {
             || self.text.contains("unusual traffic")
             || self.text.contains("automated requests")
     }
+
+    /// Check if the response is a JavaScript-gated interstitial rather than a
+    /// result page.
+    ///
+    /// Google (and other engines) serve a small bootstrap page to clients they
+    /// refuse to render results for — typically datacenter/cloud IP ranges. It
+    /// is an HTTP 200 with no CAPTCHA text, so `is_captcha` cannot see it, and
+    /// every result-container selector matches nothing. Detect it explicitly so
+    /// such responses are reported as errors instead of silently yielding zero
+    /// results.
+    pub fn is_js_gated(&self) -> bool {
+        self.text.contains("/httpservice/retry/enablejs")
+            || self.text.contains("emsg=SG_REL")
+            || self.text.contains("If you're having trouble accessing Google Search")
+    }
+
+    /// Check if the response is a usable result page that simply parsed to zero
+    /// results.
+    ///
+    /// A legitimate empty SERP ("no results found") is small; an interstitial is
+    /// also small but carries gate markers. Treat an oversized body with no
+    /// parsed results as a parse failure, since a real result page of that size
+    /// would have matched at least one container selector.
+    pub fn looks_unparsed(&self, parsed_results: usize) -> bool {
+        parsed_results == 0 && self.text.len() > 20_000
+    }
+
+    /// Check if the response is an anti-bot challenge page.
+    ///
+    /// Cloudflare's "Just a moment..." interstitial and similar gates are served
+    /// with a real HTTP status (often 403) and a small HTML body. Engines that
+    /// only inspect the status code mislabel these as parse failures, so detect
+    /// them explicitly to report `AccessDenied` instead.
+    pub fn is_challenge_page(&self) -> bool {
+        let lowered = self.text.to_lowercase();
+        lowered.contains("just a moment")
+            || lowered.contains("cf-chl-")
+            || lowered.contains("challenge-platform")
+            || lowered.contains("enable javascript and cookies to continue")
+            || lowered.contains("checking your browser before accessing")
+            || lowered.contains("ddg-challenge")
+    }
+
+    /// Check if the response body carries anti-bot / rate-limit markers.
+    ///
+    /// Distinguishes a throttled or CAPTCHA-walled response from a genuine
+    /// layout change, so the caller can report `TooManyRequests` or `Captcha`
+    /// rather than a generic parse failure.
+    pub fn has_antibot_markers(&self) -> bool {
+        let lowered = self.text.to_lowercase();
+        lowered.contains("too many requests")
+            || lowered.contains("rate limit")
+            || lowered.contains("unusual traffic")
+            || lowered.contains("automated requests")
+    }
+
+    /// Check whether the body looks like HTML at all.
+    ///
+    /// A non-HTML body (plain text, JSON error envelope, or an empty body) can
+    /// never match a result selector, so zero parsed results from it is a
+    /// transport/format problem rather than an empty SERP.
+    pub fn looks_like_html(&self) -> bool {
+        let trimmed = self.text.trim_start();
+        if trimmed.is_empty() {
+            return false;
+        }
+        let head = trimmed[..trimmed.len().min(512)].to_lowercase();
+        head.contains("<!doctype")
+            || head.contains("<html")
+            || head.contains("<body")
+            || head.contains("<div")
+            || head.contains("<article")
+            || head.contains("<main")
+            || head.contains("<?xml")
+    }
+
+    /// Consume the response and turn it into engine results, or an error
+    /// describing *why* no results could be extracted.
+    ///
+    /// `parsed` is the number of results the engine's selector logic produced.
+    /// Callers pass their own `expects_json`/`describe` hints so the shared
+    /// classification stays accurate across HTML and JSON engines.
+    pub fn classify(
+        &self,
+        parsed: usize,
+        expects_json: bool,
+        engine: &str,
+    ) -> anyhow::Result<usize> {
+        if parsed > 0 {
+            return Ok(parsed);
+        }
+
+        // A gate page is a refusal, not an empty result set — check this before
+        // anything else so it is not reported as a parse failure.
+        if self.is_challenge_page() {
+            return Err(anyhow::anyhow!(
+                "Blocked: {} returned an anti-bot challenge page instead of results \
+                 ({} bytes, status {})",
+                engine,
+                self.text.len(),
+                self.status
+            ));
+        }
+
+        if self.is_captcha() {
+            return Err(anyhow::anyhow!("CAPTCHA detected"));
+        }
+
+        if self.status == 429 || self.has_antibot_markers() {
+            return Err(anyhow::anyhow!(
+                "TooManyRequests: {} throttled this client (status {})",
+                engine,
+                self.status
+            ));
+        }
+
+        if expects_json {
+            return Err(anyhow::anyhow!(
+                "Failed to parse response: {} bytes of JSON yielded no results",
+                self.text.len()
+            ));
+        }
+
+        if !self.looks_like_html() {
+            return Err(anyhow::anyhow!(
+                "Failed to parse response: {} bytes of non-HTML body (status {})",
+                self.text.len(),
+                self.status
+            ));
+        }
+
+        if self.looks_unparsed(parsed) {
+            return Err(anyhow::anyhow!(
+                "Failed to parse response: {} bytes of HTML matched no result container",
+                self.text.len()
+            ));
+        }
+
+        Ok(parsed)
+    }
 }
 
 /// Main engine trait that all search engines must implement

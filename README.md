@@ -1,6 +1,6 @@
 # Metaseek
 
-Fork of [SearXNG-RS](https://github.com/sempervictus/searxng-rs), retaining its AGPL-3.0 license and upstream attribution. Existing `SEARXNG_*` environment variables remain supported.
+Fork of [SearXNG-RS](https://github.com/sempervictus/searxng-rs), retaining its AGPL-3.0 license and upstream attribution. Configuration uses `metaseek.yml` and `METASEEK_*` environment variables. Legacy `SEARXNG_*` variables and automatic discovery of `settings.yml` are no longer supported.
 
 [![CI](https://github.com/reonokiy/metaseek/actions/workflows/ci.yml/badge.svg)](https://github.com/reonokiy/metaseek/actions/workflows/ci.yml)
 
@@ -32,7 +32,7 @@ A privacy-respecting metasearch engine written in Rust. This project is a Rust-b
 - Extracts article metadata including kicker categories
 
 **Branding System:**
-- Environment variable overrides (`SEARXNG_BRANDING_*`)
+- Environment variable overrides (`METASEEK_BRANDING_*`)
 - Local logo detection and base64 data URI embedding
 - MIME type auto-detection (SVG, PNG, JPG, GIF)
 - Offline-capable deployments with embedded assets
@@ -145,9 +145,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=searxng
+User=metaseek
 WorkingDirectory=/opt/metaseek
-EnvironmentFile=/etc/searxng/metaseek.env
+EnvironmentFile=/etc/metaseek/metaseek.env
 ExecStart=/opt/metaseek/target/release/metaseek
 Restart=on-failure
 
@@ -164,13 +164,33 @@ sudo systemctl start metaseek
 
 ## Configuration
 
-The application looks for `settings.yml` in these locations (in order):
+The application looks for `metaseek.yml` in these locations (in order):
 
-1. `$SEARXNG_SETTINGS_PATH` environment variable
-2. `./settings.yml`
-3. `./config/settings.yml`
-4. `/etc/searxng/settings.yml`
-5. `~/.config/metaseek/settings.yml`
+1. `$METASEEK_SETTINGS_PATH` environment variable
+2. `./metaseek.yml`
+3. `./config/metaseek.yml`
+4. `/etc/metaseek/metaseek.yml`
+5. `~/.config/metaseek/metaseek.yml`
+
+Configuration is loaded with the Rust `config` crate and deserialized directly into
+`Settings`. The first discovered file is used. An explicitly selected file must exist;
+invalid configuration values cause startup to fail instead of silently falling back.
+
+Precedence (lowest to highest): typed defaults → YAML file → flat environment aliases
+→ nested environment variables. Nested names use `__` between structure fields:
+
+```bash
+export METASEEK_SERVER__PORT=8888
+export METASEEK_SERVER__BIND_ADDRESS=0.0.0.0
+export METASEEK_GENERAL__DEBUG=false
+export METASEEK_OUTGOING__REQUEST_TIMEOUT=10.0
+export METASEEK_BRANDING__NAME=Metaseek
+```
+
+Existing Metaseek aliases such as `METASEEK_PORT`, `METASEEK_BIND_ADDRESS`,
+`METASEEK_SECRET_KEY`, and `METASEEK_BRANDING_NAME` still work. CLI `--port`
+and `--bind` override their corresponding nested environment values.
+
 
 ### Example Configuration
 
@@ -220,10 +240,10 @@ engines:
 
 ```bash
 # Override branding at runtime
-export SEARXNG_BRANDING_NAME="Enterprise Search"
-export SEARXNG_BRANDING_LOGO="/opt/logos/enterprise.png"
-export SEARXNG_BRANDING_TAGLINE="Secure internal search"
-export SEARXNG_BRANDING_ACCENT_COLOR="#0066cc"
+export METASEEK_BRANDING_NAME="Enterprise Search"
+export METASEEK_BRANDING_LOGO="/opt/logos/enterprise.png"
+export METASEEK_BRANDING_TAGLINE="Secure internal search"
+export METASEEK_BRANDING_ACCENT_COLOR="#0066cc"
 ```
 
 **Local Logo Embedding:**
@@ -252,7 +272,7 @@ sudo systemctl start tor
 # Set proxy environment variable
 export ALL_PROXY=socks5h://127.0.0.1:9050
 
-# Or in settings.yml
+# Or in metaseek.yml
 env:
   ALL_PROXY: "socks5h://127.0.0.1:9050"
 ```
@@ -265,7 +285,7 @@ The Ahmia engine automatically:
 
 ### Engine Configuration Reference
 
-See `config/settings.yml.example` for complete engine configuration.
+See `config/metaseek.yml.example` for complete engine configuration.
 
 **API Key Setup:**
 - Required keys: LinkedIn Companies (see [API_KEY_SETUP.md](API_KEY_SETUP.md))
@@ -276,11 +296,11 @@ See `config/settings.yml.example` for complete engine configuration.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `SEARXNG_SETTINGS_PATH` | Path to settings.yml | - |
-| `SEARXNG_DEBUG` | Enable debug mode | `false` |
-| `SEARXNG_PORT` | Server port | `8888` |
-| `SEARXNG_BIND_ADDRESS` | Bind address | `127.0.0.1` |
-| `SEARXNG_SECRET_KEY` | Secret key for sessions | - |
+| `METASEEK_SETTINGS_PATH` | Path to metaseek.yml | - |
+| `METASEEK_DEBUG` | Enable debug mode | `false` |
+| `METASEEK_PORT` | Server port | `8888` |
+| `METASEEK_BIND_ADDRESS` | Bind address | `127.0.0.1` |
+| `METASEEK_SECRET_KEY` | Secret key for sessions | - |
 | `ALL_PROXY` | Proxy for Tor/HTTP traffic | - |
 | `HTTP_PROXY` | HTTP proxy fallback | - |
 | `HTTPS_PROXY` | HTTPS proxy fallback | - |
@@ -308,7 +328,7 @@ Execute a search without starting the server:
 ./target/release/metaseek --query "rust programming"
 
 # With custom config
-./target/release/metaseek --config /etc/searxng/settings.yml --query "climate change"
+./target/release/metaseek --config /etc/metaseek/metaseek.yml --query "climate change"
 
 # Pipe to jq for JSON processing
 ./target/release/metaseek --query "ai news" | jq '.results[] | {title, url}'
@@ -400,7 +420,7 @@ src/
 
 ### Engine Lifecycle
 
-1. **Load**: `EngineLoader` reads `settings.yml`, instantiates enabled engines
+1. **Load**: `EngineLoader` reads `metaseek.yml`, instantiates enabled engines
 2. **Validate**: Each engine checks API key requirements (if applicable)
 3. **Request**: `Engine::request()` builds HTTP query with parameters
 4. **Execute**: Parallel `reqwest` calls with configurable timeouts

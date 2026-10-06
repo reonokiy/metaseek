@@ -52,19 +52,11 @@ impl AppState {
         let search = Arc::new(Search::new(client, registry.clone()));
         let templates = Arc::new(super::Templates::new()?);
         
-        // Load branding from environment variables if set, otherwise use settings
-        let name = std::env::var("SEARXNG_BRANDING_NAME")
-            .ok()
-            .or_else(|| settings.branding.name.clone());
-        let logo = std::env::var("SEARXNG_BRANDING_LOGO")
-            .ok()
-            .or_else(|| settings.branding.logo.clone());
-        let tagline = std::env::var("SEARXNG_BRANDING_TAGLINE")
-            .ok()
-            .or_else(|| settings.branding.tagline.clone());
-        let accent_color = std::env::var("SEARXNG_BRANDING_ACCENT_COLOR")
-            .ok()
-            .or_else(|| settings.branding.accent_color.clone());
+        // All configuration sources have already been merged into Settings.
+        let name = settings.branding.name.clone();
+        let logo = settings.branding.logo.clone();
+        let tagline = settings.branding.tagline.clone();
+        let accent_color = settings.branding.accent_color.clone();
 
         // If logo is a local file path, read it and convert to base64 data URI
         let logo_data_uri = logo.as_ref().and_then(|l| {

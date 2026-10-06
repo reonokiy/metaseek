@@ -79,12 +79,12 @@ pub fn extract_api_key_from_params(
 /// use metaseek::engines::generate_api_key_config_error;
 /// let msg = generate_api_key_config_error("linkedin_companies", "LinkedIn Companies");
 /// assert!(msg.contains("API key"));
-/// assert!(msg.contains("settings.yml"));
+/// assert!(msg.contains("metaseek.yml"));
 /// ```
 pub fn generate_api_key_config_error(engine_name: &str, config_name: &str) -> String {
     format!(
         "Engine '{}' requires an API key. \
-         Please configure 'api_key' in config/settings.yml for engine '{}', \
+         Please configure 'api_key' in config/metaseek.yml for engine '{}', \
          or pass it via request parameters.",
         engine_name, config_name
     )
@@ -108,7 +108,7 @@ pub fn generate_api_key_config_error(engine_name: &str, config_name: &str) -> St
 ///     "LinkedIn Companies",
 ///     false
 /// );
-/// assert!(msg.contains("settings.yml"));
+/// assert!(msg.contains("metaseek.yml"));
 /// assert!(msg.contains("LinkedIn Companies"));
 /// assert!(msg.contains("developer portal"));
 /// ```
@@ -126,7 +126,7 @@ pub fn generate_api_key_config_error_with_instructions(
     msg.push_str(&format!(
         "To configure:\n\
          1. Generate an API key from the provider's developer portal\n\
-         2. Add to config/settings.yml:\n\
+         2. Add to config/metaseek.yml:\n\
             \n\
             - name: {}\n\
               engine: {}\n\
@@ -245,13 +245,13 @@ mod tests {
         assert!(msg.contains("test_engine"));
         assert!(msg.contains("Test Engine"));
         assert!(msg.contains("API key"));
-        assert!(msg.contains("settings.yml"));
+        assert!(msg.contains("metaseek.yml"));
     }
 
     #[test]
     fn test_generate_api_key_config_error_with_instructions() {
         let msg = generate_api_key_config_error_with_instructions("test", "Test", false);
-        assert!(msg.contains("settings.yml"));
+        assert!(msg.contains("metaseek.yml"));
         assert!(msg.contains("api_key:"));
         assert!(msg.contains("Restart the server"));
     }

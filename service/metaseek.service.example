@@ -14,10 +14,10 @@ StartLimitBurst=3
 # 1. User & Group Isolation
 # -----------------------------------------------------------------------------
 # To run the service as a dedicated, non-root user.
-# 'searxng' user should exist on the system (create if missing: sudo useradd -r -s /bin/false searxng)
-# 'searxng' group should be owned by the data directories.
-# User=searxng
-# Group=searxng
+# 'metaseek' user should exist on the system (create if missing: sudo useradd -r -s /bin/false metaseek)
+# 'metaseek' group should be owned by the data directories.
+# User=metaseek
+# Group=metaseek
 User=nobody
 Group=nobody
 
@@ -60,7 +60,7 @@ RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 # 3. Environment & Configuration
 # -----------------------------------------------------------------------------
 # Load the environment file located at /etc/default/metaseek.env.
-# This file sets SEARXNG_PORT, SEARXNG_BIND_ADDRESS, SEARXNG_SECRET_KEY, etc.
+# This file sets METASEEK_PORT, METASEEK_BIND_ADDRESS, METASEEK_SECRET_KEY, etc.
 EnvironmentFile=-/etc/default/metaseek.env
 
 # Set the binary execution path explicitly.

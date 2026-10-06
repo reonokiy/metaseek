@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
 
-/// Main settings structure matching SearXNG's settings.yml
+/// Main settings structure for metaseek.yml
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
@@ -37,32 +37,70 @@ impl Default for Settings {
 }
 
 impl Settings {
-    /// Load settings from a YAML file
+    /// Read a YAML source and deserialize it into typed settings.
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let content = std::fs::read_to_string(path)?;
-        let settings: Settings = serde_yaml::from_str(&content)?;
-        Ok(settings)
+        Ok(::config::Config::builder()
+            .add_source(::config::File::from(path.as_ref()).format(::config::FileFormat::Yaml))
+            .build()?
+            .try_deserialize()?)
     }
 
-    /// Merge with environment variables (SEARXNG_* prefix)
-    pub fn merge_env(&mut self) {
-        if let Ok(val) = std::env::var("SEARXNG_DEBUG") {
-            self.general.debug = val.parse().unwrap_or(false);
+    /// Discover the configuration file, then apply environment overrides.
+    pub fn load() -> Result<Self> {
+        let env: HashMap<String, String> = std::env::vars().collect();
+        let explicit = env.get("METASEEK_SETTINGS_PATH").map(std::path::PathBuf::from);
+        let mut paths = vec![
+            std::path::PathBuf::from("metaseek.yml"),
+            std::path::PathBuf::from("config/metaseek.yml"),
+            std::path::PathBuf::from("/etc/metaseek/metaseek.yml"),
+        ];
+        if let Some(dir) = dirs::config_dir() {
+            paths.push(dir.join("metaseek/metaseek.yml"));
         }
-        if let Ok(val) = std::env::var("SEARXNG_SECRET_KEY") {
-            self.server.secret_key = val;
+        let path = explicit.or_else(|| paths.into_iter().find(|p| p.is_file()));
+        Self::from_sources(path.as_deref(), env)
+    }
+
+    /// Priority: typed defaults < YAML < flat environment aliases < nested environment.
+    /// An explicit environment map keeps callers and tests independent of global mutation.
+    pub fn from_sources(path: Option<&Path>, env: HashMap<String, String>) -> Result<Self> {
+        let mut builder = ::config::Config::builder();
+        if let Some(path) = path {
+            builder = builder.add_source(
+                ::config::File::from(path).format(::config::FileFormat::Yaml),
+            );
         }
-        if let Ok(val) = std::env::var("SEARXNG_PORT") {
-            if let Ok(port) = val.parse() {
-                self.server.port = port;
+        let aliases = [
+            ("DEBUG", "GENERAL__DEBUG"),
+            ("SECRET_KEY", "SERVER__SECRET_KEY"),
+            ("PORT", "SERVER__PORT"),
+            ("BIND_ADDRESS", "SERVER__BIND_ADDRESS"),
+            ("BASE_URL", "SERVER__BASE_URL"),
+            ("BRANDING_NAME", "BRANDING__NAME"),
+            ("BRANDING_LOGO", "BRANDING__LOGO"),
+            ("BRANDING_TAGLINE", "BRANDING__TAGLINE"),
+            ("BRANDING_ACCENT_COLOR", "BRANDING__ACCENT_COLOR"),
+        ];
+        let mut normalized = HashMap::new();
+        for (alias, field) in aliases {
+            if let Some(value) = env.get(&format!("METASEEK_{alias}")) {
+                normalized.insert(format!("METASEEK_{field}"), value.clone());
             }
         }
-        if let Ok(val) = std::env::var("SEARXNG_BIND_ADDRESS") {
-            self.server.bind_address = val;
+        for (key, value) in env {
+            if key.starts_with("METASEEK_") && key.contains("__") {
+                normalized.insert(key, value);
+            }
         }
-        if let Ok(val) = std::env::var("SEARXNG_BASE_URL") {
-            self.server.base_url = Some(val);
-        }
+        // Keep values as strings: serde/config converts typed scalars without
+        // accidentally turning numeric-looking secrets or branding into numbers.
+        Ok(builder
+            .add_source(::config::Environment::with_prefix("METASEEK")
+                .prefix_separator("_")
+                .separator("__")
+                .source(Some(normalized)))
+            .build()?
+            .try_deserialize()?)
     }
 
     /// Get engine config by name

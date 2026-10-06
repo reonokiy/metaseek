@@ -6,11 +6,11 @@
 # Engines requiring API keys must be manually enabled.
 #
 # Configuration locations (checked in order):
-# 1. $SEARXNG_SETTINGS_PATH environment variable
-# 2. ./config/settings.yml
-# 3. ./settings.yml
-# 4. /etc/searxng/settings.yml
-# 5. ~/.config/metaseek/settings.yml
+# 1. $METASEEK_SETTINGS_PATH environment variable
+# 2. ./metaseek.yml
+# 3. ./config/metaseek.yml
+# 4. /etc/metaseek/metaseek.yml
+# 5. ~/.config/metaseek/metaseek.yml
 
 general:
   debug: false
@@ -34,10 +34,10 @@ server:
 # ======================
 # Customize the appearance of your search engine
 # Environment variables can override these settings:
-# - SEARXNG_BRANDING_NAME
-# - SEARXNG_BRANDING_LOGO
-# - SEARXNG_BRANDING_TAGLINE
-# - SEARXNG_BRANDING_ACCENT_COLOR
+# - METASEEK_BRANDING_NAME
+# - METASEEK_BRANDING_LOGO
+# - METASEEK_BRANDING_TAGLINE
+# - METASEEK_BRANDING_ACCENT_COLOR
 branding:
   # Brand name to display (defaults to instance_name if not set)
   name: "Metaseek"

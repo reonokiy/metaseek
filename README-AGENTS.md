@@ -27,7 +27,7 @@ Run a search without starting a persistent server. Ideal for CI/CD, cron jobs, o
 
 **With Custom Config:**
 ```bash
-./target/release/metaseek --config /etc/searxng/settings.yml --query "climate data"
+./target/release/metaseek --config /etc/metaseek/metaseek.yml --query "climate data"
 ```
 
 **Pipe to `jq` for Processing:**
@@ -50,7 +50,7 @@ Run a search without starting a persistent server. Ideal for CI/CD, cron jobs, o
 | Flag | Description | Example |
 |------|-------------|---------|
 | `--query`, `-q` | Search query (required for CLI mode) | `--query "rust"` |
-| `--config`, `-c` | Path to `settings.yml` | `-c /etc/searxng/settings.yml` |
+| `--config`, `-c` | Path to `metaseek.yml` | `-c /etc/metaseek/metaseek.yml` |
 | `--port`, `-p` | Override server port (ignored in CLI) | `-p 9000` |
 | `--bind`, `-b` | Override bind address (ignored in CLI) | `-b 0.0.0.0` |
 | `--categories` | Comma-separated category filter | `--categories "general,news"` |
@@ -328,11 +328,11 @@ export ALL_PROXY=socks5h://127.0.0.1:9050
 |-------|----------|
 | **No results** | Check `engine_errors` in JSON; verify query syntax. |
 | **Timeout** | Increase `--time_range` or reduce `num` results. |
-| **API Key Error** | Configure `api_key` in `settings.yml` or pass via env. |
+| **API Key Error** | Configure `api_key` in `metaseek.yml` or pass via env. |
 | **Tor Engine Fails** | Ensure `ALL_PROXY` is set and Tor is running. |
 | **Wrong Format** | Always use `&format=json` in API or `--query` in CLI. |
 | **MCP Connection** | Check that stdio is properly connected; use line-delimited JSON. |
 
 ---
 
-*For full engine list and categories, see `config/settings.yml.example` or the `/stats` endpoint.*
+*For full engine list and categories, see `config/metaseek.yml.example` or the `/stats` endpoint.*

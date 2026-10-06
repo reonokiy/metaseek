@@ -8,7 +8,7 @@ use reqwest::{Client, Response};
 use std::collections::HashMap;
 use std::time::Duration;
 
-/// HTTP client wrapper with SearXNG-specific configuration
+/// HTTP client wrapper with Metaseek-specific configuration
 #[derive(Clone)]
 pub struct HttpClient {
     client: Client,

@@ -15,7 +15,7 @@ services:
     environment:
       - TOR_EXIT_COUNTRY=de,at,gb,fr,nl,it,is,jp,sg,au,nz,ca,us
     networks:
-      - searx-network
+      - metaseek-network
 
   # Metaseek Application Service
   # Uses your existing Dockerfile
@@ -32,13 +32,16 @@ services:
       # 'socks5h' ensures DNS resolution happens inside the Tor network
       - ALL_PROXY=socks5h://torproxy:9050
       
+      - METASEEK_SETTINGS_PATH=/app/config/metaseek.yml
+      - METASEEK_BIND_ADDRESS=0.0.0.0
+
       # Optional: Instance configuration
-      - SEARXNG_BRANDING_NAME=Metaseek
-      - SEARXNG_BRANDING_TAGLINE=Privacy-respecting metasearch via Tor
+      - METASEEK_BRANDING_NAME=Metaseek
+      - METASEEK_BRANDING_TAGLINE=Privacy-respecting metasearch via Tor
     depends_on:
       - torproxy
     networks:
-      - searx-network
+      - metaseek-network
     volumes:
       # Mount your local config if you have one
       - ./config:/app/config:ro
@@ -46,5 +49,5 @@ services:
       - ./src/templates:/app/src/templates:ro
 
 networks:
-  searx-network:
+  metaseek-network:
     driver: bridge

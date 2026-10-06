@@ -225,7 +225,7 @@ impl Engine for LinkedInCompanies {
         if api_key.is_none() || api_key.as_ref().map(|k| k.is_empty()).unwrap_or(true) {
             return Err(anyhow::anyhow!(
                 "LinkedIn Companies engine requires an API key. \
-                 Please configure 'api_key' in settings.yml for engine '{}' \
+                 Please configure 'api_key' in metaseek.yml for engine '{}' \
                  or pass it via request parameters.",
                 self.name()
             ));
@@ -268,7 +268,7 @@ impl Engine for LinkedInCompanies {
         if response.status == 401 || response.status == 403 {
             return Err(anyhow::anyhow!(
                 "LinkedIn API requires authentication. \
-                 Please configure a valid API key in settings.yml for engine '{}'.",
+                 Please configure a valid API key in metaseek.yml for engine '{}'.",
                 self.name()
             ));
         }
@@ -286,7 +286,7 @@ impl Engine for LinkedInCompanies {
         if config.api_key.is_none() || config.api_key.as_ref().unwrap().is_empty() {
             return Err(anyhow::anyhow!(
                 "LinkedIn Companies engine requires an API key. \
-                 Please configure 'api_key' in settings.yml for engine '{}' \
+                 Please configure 'api_key' in metaseek.yml for engine '{}' \
                  or disable this engine if you don't have a LinkedIn API key.",
                 self.name()
             ));

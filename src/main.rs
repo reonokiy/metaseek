@@ -14,7 +14,6 @@ use metaseek::{
 };
 use std::env;
 use std::net::SocketAddr;
-use std::path::PathBuf;
 use std::process;
 use std::sync::Arc;
 use tracing::{info, Level};
@@ -30,7 +29,7 @@ USAGE:
     metaseek [OPTIONS]
 
 OPTIONS:
-    -c, --config <FILE>    Path to configuration file (default: ./config/settings.yml)
+    -c, --config <FILE>    Path to configuration file (auto-discover metaseek.yml)
     -p, --port <PORT>      Override server port (default: 8888)
     -b, --bind <ADDR>      Override bind address (default: 127.0.0.1)
     -q, --query <TEXT>     Run a one-off search and print JSON results to stdout
@@ -39,11 +38,11 @@ OPTIONS:
     -V, --version          Print version information and exit
 
 ENVIRONMENT VARIABLES:
-    SEARXNG_SETTINGS_PATH  Path to settings.yml
-    SEARXNG_DEBUG          Enable debug mode (true/false)
-    SEARXNG_PORT           Server port
-    SEARXNG_BIND_ADDRESS   Bind address
-    SEARXNG_SECRET_KEY     Secret key for sessions
+    METASEEK_SETTINGS_PATH  Path to metaseek.yml
+    METASEEK_DEBUG          Enable debug mode (true/false)
+    METASEEK_PORT           Server port
+    METASEEK_BIND_ADDRESS   Bind address
+    METASEEK_SECRET_KEY     Secret key for sessions
     ALL_PROXY              Proxy for Tor/HTTP traffic (e.g., socks5h://127.0.0.1:9050)
 
 EXAMPLES:
@@ -51,7 +50,7 @@ EXAMPLES:
     metaseek
 
     # Start with a custom config file
-    metaseek --config /etc/searxng/settings.yml
+    metaseek --config /etc/metaseek/metaseek.yml
 
     # Start on a different port and bind to all interfaces
     metaseek --port 9000 --bind 0.0.0.0
@@ -97,7 +96,7 @@ async fn main() -> Result<()> {
         match args[i].as_str() {
             "--config" | "-c" => {
                 if i + 1 < args.len() {
-                    env::set_var("SEARXNG_SETTINGS_PATH", &args[i + 1]);
+                    env::set_var("METASEEK_SETTINGS_PATH", &args[i + 1]);
                     i += 2;
                 } else {
                     eprintln!("Error: --config requires a path argument.");
@@ -107,7 +106,7 @@ async fn main() -> Result<()> {
             "--port" | "-p" => {
                 if i + 1 < args.len() {
                     if let Ok(_p) = args[i + 1].parse::<u16>() {
-                        env::set_var("SEARXNG_PORT", args[i + 1].clone());
+                        env::set_var("METASEEK_SERVER__PORT", args[i + 1].clone());
                         i += 2;
                     } else {
                         eprintln!("Error: --port requires a valid number.");
@@ -120,7 +119,7 @@ async fn main() -> Result<()> {
             }
             "--bind" | "-b" => {
                 if i + 1 < args.len() {
-                    env::set_var("SEARXNG_BIND_ADDRESS", &args[i + 1]);
+                    env::set_var("METASEEK_SERVER__BIND_ADDRESS", &args[i + 1]);
                     i += 2;
                 } else {
                     eprintln!("Error: --bind requires an address argument.");
@@ -163,7 +162,7 @@ async fn main() -> Result<()> {
     }
 
     // Load configuration
-    let settings = load_settings()?;
+    let settings = Settings::load()?;
     if query_text.is_none() && !mcp_mode {
         info!(
             "Loaded configuration for instance: {}",
@@ -205,17 +204,8 @@ async fn main() -> Result<()> {
     // Create router
     let app = create_router(state);
 
-    // Bind address (respecting CLI override via env var)
-    let port = env::var("SEARXNG_PORT")
-        .ok()
-        .and_then(|p| p.parse::<u16>().ok())
-        .unwrap_or(settings.server.port);
-    
-    let bind_addr = env::var("SEARXNG_BIND_ADDRESS")
-        .ok()
-        .unwrap_or_else(|| settings.server.bind_address.clone());
-
-    let addr = SocketAddr::new(bind_addr.parse()?, port);
+    // CLI overrides are already merged into the typed settings.
+    let addr = SocketAddr::new(settings.server.bind_address.parse()?, settings.server.port);
 
     info!("Starting server on http://{}", addr);
 
@@ -354,42 +344,3 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
     Ok(())
 }
 
-/// Load settings from file or use defaults
-fn load_settings() -> Result<Settings> {
-    // Check for settings file in various locations
-    let paths = [
-        PathBuf::from("settings.yml"),
-        PathBuf::from("config/settings.yml"),
-        PathBuf::from("/etc/searxng/settings.yml"),
-        dirs::config_dir()
-            .map(|p| p.join("metaseek/settings.yml"))
-            .unwrap_or_default(),
-    ];
-
-    // Check environment variable first
-    if let Ok(path) = std::env::var("SEARXNG_SETTINGS_PATH") {
-        let path = PathBuf::from(path);
-        if path.exists() {
-            info!("Loading settings from: {}", path.display());
-            let mut settings = Settings::from_file(&path)?;
-            settings.merge_env();
-            return Ok(settings);
-        }
-    }
-
-    // Try each default path
-    for path in paths.iter() {
-        if path.exists() {
-            info!("Loading settings from: {}", path.display());
-            let mut settings = Settings::from_file(path)?;
-            settings.merge_env();
-            return Ok(settings);
-        }
-    }
-
-    // Use defaults
-    info!("No settings file found, using defaults");
-    let mut settings = Settings::default();
-    settings.merge_env();
-    Ok(settings)
-}

@@ -157,10 +157,20 @@ impl Engine for ApNews {
 
     fn response(&self, response: EngineResponse) -> AnyhowResult<EngineResults> {
         if !response.is_success() {
+            // A challenge or throttle page carries a real error status *and* an
+            // explanatory body. Let the classifier name it (Blocked vs
+            // TooManyRequests) instead of collapsing everything to "HTTP error".
+            response.classify(0, false, self.name())?;
             return Err(anyhow::anyhow!("HTTP error: {}", response.status));
         }
 
         let results = self.parse_results(&response.text);
+
+        // AP serves a Cloudflare "Just a moment..." challenge to clients it
+        // refuses (datacenter/cloud IP ranges), which parses to zero results and
+        // would otherwise be indistinguishable from an empty result set.
+        response.classify(results.len(), false, self.name())?;
+
         Ok(EngineResults::with_results(results))
     }
 }
@@ -177,5 +187,39 @@ mod tests {
 
         assert!(request.url.contains("apnews.com"));
         assert!(request.params.contains_key("query"));
+    }
+
+    fn response_with(status: u16, body: &str) -> EngineResponse {
+        EngineResponse {
+            status,
+            headers: HashMap::new(),
+            text: body.to_string(),
+            url: "https://apnews.com".to_string(),
+        }
+    }
+
+    #[test]
+    fn test_ap_news_challenge_page_is_reported_as_blocked() {
+        let ap = ApNews::new();
+        // Cloudflare's "Just a moment..." interstitial, as served to datacenter IPs.
+        let body = r#"<!DOCTYPE html><html><head><title>Just a moment...</title>
+            <script src="/cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1"></script>
+            </head><body><div id="cf-chl-widget"></div></body></html>"#;
+
+        let err = ap.response(response_with(403, body)).unwrap_err();
+        assert!(
+            err.to_string().contains("Blocked"),
+            "challenge page should be reported as blocked, got: {}",
+            err
+        );
+    }
+
+    #[test]
+    fn test_ap_news_small_empty_serp_is_not_an_error() {
+        let ap = ApNews::new();
+        let body = "<!DOCTYPE html><html><body><p>No stories found.</p></body></html>";
+
+        let results = ap.response(response_with(200, body)).unwrap();
+        assert!(results.results.is_empty());
     }
 }

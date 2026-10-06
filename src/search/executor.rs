@@ -208,10 +208,15 @@ impl Search {
                     }
                     Err(e) => {
                         warn!("Failed to parse response from {}: {}", engine_name, e);
-                        let error = if e.to_string().contains("CAPTCHA") {
+                        let message = e.to_string();
+                        let error = if message.contains("CAPTCHA") {
                             EngineError::Captcha
-                        } else if e.to_string().contains("API key")
-                            || e.to_string().contains("requires an API key")
+                        } else if message.contains("Blocked") {
+                            EngineError::AccessDenied
+                        } else if message.contains("TooManyRequests") {
+                            EngineError::TooManyRequests
+                        } else if message.contains("API key")
+                            || message.contains("requires an API key")
                         {
                             EngineError::MissingApiKey
                         } else {

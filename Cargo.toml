@@ -1,23 +1,23 @@
 [package]
-name = "searxng-rs"
+name = "metaseek"
 version = "0.3.0"
 edition = "2021"
-authors = ["SearXNG-RS Contributors"]
+authors = ["SearXNG-RS Contributors", "reonokiy"]
 description = "A privacy-respecting metasearch engine written in Rust"
 license = "AGPL-3.0"
-repository = "https://github.com/sempervictus/searxng-rs"
+repository = "https://github.com/reonokiy/metaseek"
 
 [dependencies]
 # Async runtime
 tokio = { version = "1.35", features = ["full"] }
 
 # Web framework
-axum = { version = "0.7", features = ["macros"] }
-tower = "0.4"
-tower-http = { version = "0.5", features = ["cors", "fs", "compression-gzip"] }
+axum = { version = "0.8.9", features = ["macros"] }
+tower = "0.5.3"
+tower-http = { version = "0.7.1", features = ["cors", "fs", "compression-gzip"] }
 
 # HTTP client
-reqwest = { version = "0.11", features = ["json", "cookies", "gzip", "brotli", "blocking", "socks"] }
+reqwest = { version = "0.13.5", features = ["json", "cookies", "gzip", "brotli", "blocking", "socks", "query", "form"] }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -25,21 +25,21 @@ serde_json = "1.0"
 serde_yaml = "0.9"
 
 # HTML/XML parsing
-scraper = "0.18"
+scraper = "0.27.0"
 select = "0.6"
 
 # Template engine
-tera = "1.19"
+tera = "2.4.0"
 
 # Configuration
-config = "0.14"
+config = "0.15.27"
 
 # Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Utilities
-thiserror = "1.0"
+thiserror = "2.0.21"
 anyhow = "1.0"
 async-trait = "0.1"
 futures = "0.3"
@@ -47,32 +47,32 @@ url = "2.5"
 regex = "1.10"
 lazy_static = "1.4"
 once_cell = "1.19"
-rand = "0.8"
+rand = "0.10.3"
 uuid = { version = "1.6", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
-base64 = "0.21"
-sha2 = "0.10"
-hmac = "0.12"
+base64 = "0.23.1"
+sha2 = "0.11.0"
+hmac = "0.13.0"
 urlencoding = "2.1"
 serde_urlencoded = "0.7"
-md5 = "0.7"
-dirs = "5.0"
+md5 = "0.8.1"
+dirs = "7.0.0"
 
 # Rate limiting
-governor = "0.6"
+governor = "0.10.4"
 
 # Caching
 moka = { version = "0.12", features = ["future"] }
-dashmap = "5.5"
+dashmap = "6.2.1"
 
 # Internationalization
-fluent = "0.16"
-fluent-bundle = "0.15"
+fluent = "0.17.0"
+fluent-bundle = "0.16.0"
 unic-langid = "0.9"
 
 [dev-dependencies]
 tokio-test = "0.4"
-wiremock = "0.5"
+wiremock = "0.6.5"
 
 [profile.release]
 lto = true

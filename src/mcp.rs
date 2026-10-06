@@ -1,4 +1,4 @@
-//! Model Context Protocol (MCP) implementation for SearXNG-RS
+//! Model Context Protocol (MCP) implementation for Metaseek
 //!
 //! This module provides stdio CLI mode (`--mcp`) for integrating with AI agents
 //! and LLMs via the MCP protocol.
@@ -139,7 +139,7 @@ fn handle_initialize(id: Option<serde_json::Value>) -> McpResponse {
     let result = serde_json::json!({
         "protocolVersion": "2024-11-05",
         "serverInfo": {
-            "name": "searxng-rs",
+            "name": "metaseek",
             "version": env!("CARGO_PKG_VERSION")
         },
         "capabilities": {
@@ -445,7 +445,7 @@ mod tests {
         let result = response.result.unwrap();
         
         assert_eq!(result["protocolVersion"], "2024-11-05");
-        assert_eq!(result["serverInfo"]["name"], "searxng-rs");
+        assert_eq!(result["serverInfo"]["name"], "metaseek");
         assert!(result["capabilities"]["tools"].is_object());
     }
 

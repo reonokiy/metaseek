@@ -1,4 +1,4 @@
-//! Configuration module for SearXNG-RS
+//! Configuration module for Metaseek
 //!
 //! Handles loading and validating settings from YAML files and environment variables.
 

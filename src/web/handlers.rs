@@ -468,7 +468,7 @@ pub async fn about(State(state): State<AppState>) -> impl IntoResponse {
         Ok(html) => Html(html),
         Err(e) => {
             tracing::error!("Template error: {}", e);
-            Html("<h1>About</h1><p>SearXNG-RS</p>".to_string())
+            Html("<h1>About</h1><p>Metaseek</p>".to_string())
         }
     }
 }

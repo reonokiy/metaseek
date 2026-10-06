@@ -1,4 +1,4 @@
-//! Plugin system for SearXNG-RS
+//! Plugin system for Metaseek
 //!
 //! Plugins can hook into the search process at various points:
 //! - pre_search: Before search execution

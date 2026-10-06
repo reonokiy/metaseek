@@ -1,4 +1,4 @@
-# SearXNG-RS Configuration Template
+# Metaseek Configuration Template
 # ================================
 #
 # This file contains default configurations for all 45+ search engines.
@@ -10,11 +10,11 @@
 # 2. ./config/settings.yml
 # 3. ./settings.yml
 # 4. /etc/searxng/settings.yml
-# 5. ~/.config/searxng-rs/settings.yml
+# 5. ~/.config/metaseek/settings.yml
 
 general:
   debug: false
-  instance_name: "SearXNG-RS"
+  instance_name: "Metaseek"
   enable_metrics: true
   default_theme: simple
 
@@ -40,7 +40,7 @@ server:
 # - SEARXNG_BRANDING_ACCENT_COLOR
 branding:
   # Brand name to display (defaults to instance_name if not set)
-  name: "SearXNG-RS"
+  name: "Metaseek"
   # Logo URL (optional) - can be a local path or external URL
   logo: "/assets/logo.svg"
   # Tagline or description displayed below the logo

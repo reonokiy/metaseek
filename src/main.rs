@@ -1,9 +1,9 @@
-//! SearXNG-RS: A privacy-respecting metasearch engine written in Rust
+//! Metaseek: A privacy-respecting metasearch engine written in Rust
 //!
 //! This is the main entry point for the application.
 
 use anyhow::Result;
-use searxng_rs::{
+use metaseek::{
     config::Settings,
     engines::EngineLoader,
     mcp,
@@ -23,11 +23,11 @@ use tracing_subscriber::FmtSubscriber;
 fn print_help() {
     println!(
         r#"
-SearXNG-RS v{}
+Metaseek v{}
 A privacy-respecting metasearch engine written in Rust
 
 USAGE:
-    searxng-rs [OPTIONS]
+    metaseek [OPTIONS]
 
 OPTIONS:
     -c, --config <FILE>    Path to configuration file (default: ./config/settings.yml)
@@ -48,29 +48,29 @@ ENVIRONMENT VARIABLES:
 
 EXAMPLES:
     # Start with default settings
-    searxng-rs
+    metaseek
 
     # Start with a custom config file
-    searxng-rs --config /etc/searxng/settings.yml
+    metaseek --config /etc/searxng/settings.yml
 
     # Start on a different port and bind to all interfaces
-    searxng-rs --port 9000 --bind 0.0.0.0
+    metaseek --port 9000 --bind 0.0.0.0
 
     # Start with Tor proxy enabled
-    ALL_PROXY=socks5h://127.0.0.1:9050 searxng-rs
+    ALL_PROXY=socks5h://127.0.0.1:9050 metaseek
 
     # Run a one-off search
-    searxng-rs --query "rust programming"
+    metaseek --query "rust programming"
 
     # Start MCP server in stdio mode
-    searxng-rs --mcp
+    metaseek --mcp
 "#,
-        searxng_rs::VERSION
+        metaseek::VERSION
     );
 }
 
 fn print_version() {
-    println!("searxng-rs {}", searxng_rs::VERSION);
+    println!("metaseek {}", metaseek::VERSION);
 }
 
 #[tokio::main]
@@ -159,7 +159,7 @@ async fn main() -> Result<()> {
         .init();
 
     if query_text.is_none() && !mcp_mode {
-        info!("Starting SearXNG-RS v{}", searxng_rs::VERSION);
+        info!("Starting Metaseek v{}", metaseek::VERSION);
     }
 
     // Load configuration
@@ -263,18 +263,18 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
                 "category": r.category,
                 "metadata": serde_json::to_value(&r.metadata).unwrap_or(serde_json::Value::Null),
                 "result_type": match r.result_type {
-                    searxng_rs::results::ResultType::Default => "default",
-                    searxng_rs::results::ResultType::Image => "image",
-                    searxng_rs::results::ResultType::Video => "video",
-                    searxng_rs::results::ResultType::Map => "map",
-                    searxng_rs::results::ResultType::News => "news",
-                    searxng_rs::results::ResultType::Paper => "paper",
-                    searxng_rs::results::ResultType::File => "file",
-                    searxng_rs::results::ResultType::Code => "code",
-                    searxng_rs::results::ResultType::Answer => "answer",
-                    searxng_rs::results::ResultType::InfoBox => "infobox",
-                    searxng_rs::results::ResultType::Security => "security",
-                    searxng_rs::results::ResultType::Corporate => "corporate",
+                    metaseek::results::ResultType::Default => "default",
+                    metaseek::results::ResultType::Image => "image",
+                    metaseek::results::ResultType::Video => "video",
+                    metaseek::results::ResultType::Map => "map",
+                    metaseek::results::ResultType::News => "news",
+                    metaseek::results::ResultType::Paper => "paper",
+                    metaseek::results::ResultType::File => "file",
+                    metaseek::results::ResultType::Code => "code",
+                    metaseek::results::ResultType::Answer => "answer",
+                    metaseek::results::ResultType::InfoBox => "infobox",
+                    metaseek::results::ResultType::Security => "security",
+                    metaseek::results::ResultType::Corporate => "corporate",
                 },
             })
         })
@@ -362,7 +362,7 @@ fn load_settings() -> Result<Settings> {
         PathBuf::from("config/settings.yml"),
         PathBuf::from("/etc/searxng/settings.yml"),
         dirs::config_dir()
-            .map(|p| p.join("searxng-rs/settings.yml"))
+            .map(|p| p.join("metaseek/settings.yml"))
             .unwrap_or_default(),
     ];
 

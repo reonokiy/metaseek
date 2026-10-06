@@ -1,4 +1,4 @@
-//! Settings structures for SearXNG-RS configuration
+//! Settings structures for Metaseek configuration
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -106,7 +106,7 @@ impl Default for GeneralSettings {
     fn default() -> Self {
         Self {
             debug: false,
-            instance_name: "SearXNG".to_string(),
+            instance_name: "Metaseek".to_string(),
             enable_metrics: true,
             privacypolicy_url: None,
             donation_url: None,
@@ -421,10 +421,10 @@ impl Default for BrandingSettings {
 
 /// Generate a random secret key
 fn generate_secret_key() -> String {
-    use rand::Rng;
-    let mut rng = rand::thread_rng();
+    use rand::RngExt;
+    let mut rng = rand::rng();
     (0..32)
-        .map(|_| rng.sample(rand::distributions::Alphanumeric) as char)
+        .map(|_| rng.sample(rand::distr::Alphanumeric) as char)
         .collect()
 }
 

@@ -13,6 +13,10 @@ impl Templates {
     /// Create a new template renderer with embedded templates
     pub fn new() -> Result<Self> {
         let mut tera = Tera::default();
+        // Tera 2 no longer provides the built-in URL encoding filter.
+        tera.register_filter("urlencode", |value: &str, _: tera::Kwargs, _: &tera::State| {
+            urlencoding::encode(value).into_owned()
+        });
 
         // Add base template
         tera.add_raw_template("base.html", include_str!("../templates/base.html"))?;

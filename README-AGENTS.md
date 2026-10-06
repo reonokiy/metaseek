@@ -1,6 +1,6 @@
-# SearXNG-RS: Agent & CLI Usage Guide
+# Metaseek: Agent & CLI Usage Guide
 
-This document provides compact, actionable instructions for automated agents and scripts to query SearXNG-RS and retrieve structured JSON results.
+This document provides compact, actionable instructions for automated agents and scripts to query Metaseek and retrieve structured JSON results.
 
 ---
 
@@ -10,7 +10,7 @@ Run a search without starting a persistent server. Ideal for CI/CD, cron jobs, o
 
 ### Basic Usage
 ```bash
-./target/release/searxng-rs --query "your search terms"
+./target/release/metaseek --query "your search terms"
 ```
 
 ### Output
@@ -22,27 +22,27 @@ Run a search without starting a persistent server. Ideal for CI/CD, cron jobs, o
 
 **Simple Search:**
 ```bash
-./target/release/searxng-rs --query "rust async programming"
+./target/release/metaseek --query "rust async programming"
 ```
 
 **With Custom Config:**
 ```bash
-./target/release/searxng-rs --config /etc/searxng/settings.yml --query "climate data"
+./target/release/metaseek --config /etc/searxng/settings.yml --query "climate data"
 ```
 
 **Pipe to `jq` for Processing:**
 ```bash
-./target/release/searxng-rs --query "ai news" | jq '.results[] | {title, url, engine}'
+./target/release/metaseek --query "ai news" | jq '.results[] | {title, url, engine}'
 ```
 
 **Filter by Category:**
 ```bash
-./target/release/searxng-rs --query "python libraries" --categories "it,code"
+./target/release/metaseek --query "python libraries" --categories "it,code"
 ```
 
 **Filter by Engine:**
 ```bash
-./target/release/searxng-rs --query "react components" --engines "github,npm"
+./target/release/metaseek --query "react components" --engines "github,npm"
 ```
 
 ### CLI Arguments Reference
@@ -67,7 +67,7 @@ Start the server once and query it repeatedly via HTTP. Best for high-frequency 
 
 ### Start Server
 ```bash
-./target/release/searxng-rs
+./target/release/metaseek
 # Runs on http://127.0.0.1:8888 by default
 ```
 
@@ -124,14 +124,14 @@ curl -s "http://127.0.0.1:8888/search?q=ai+tools&format=json" | \
 
 ## 3. MCP Protocol (Model Context Protocol)
 
-SearXNG-RS supports the MCP protocol for direct integration with AI agents and LLMs.
+Metaseek supports the MCP protocol for direct integration with AI agents and LLMs.
 
 ### Stdio Mode (Recommended for Agents)
 
 Start the MCP server in stdio mode:
 
 ```bash
-./target/release/searxng-rs --mcp
+./target/release/metaseek --mcp
 ```
 
 The server reads JSON-RPC requests from `stdin` and writes responses to `stdout`.
@@ -145,7 +145,7 @@ The server reads JSON-RPC requests from `stdin` and writes responses to `stdout`
 ### Example MCP Response
 
 ```json
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","serverInfo":{"name":"searxng-rs","version":"0.3.0"},"capabilities":{"tools":{}}}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2024-11-05","serverInfo":{"name":"metaseek","version":"0.3.0"},"capabilities":{"tools":{}}}}
 ```
 
 ### Tools Available
@@ -276,13 +276,13 @@ done
 
 ### Category-Specific Search
 ```bash
-./target/release/searxng-rs --query "machine learning" --categories "science,academic"
+./target/release/metaseek --query "machine learning" --categories "science,academic"
 ```
 
 ### Engine-Specific Search (Bang Syntax)
 In CLI or API, use `!engine` in query:
 ```bash
-./target/release/searxng-rs --query "!github rust-async"
+./target/release/metaseek --query "!github rust-async"
 ```
 Or via API:
 ```bash
@@ -291,7 +291,7 @@ curl "http://127.0.0.1:8888/search?q=!github+rust-async&format=json"
 
 ### Time-Range Filtering
 ```bash
-./target/release/searxng-rs --query "latest news" --time_range "week"
+./target/release/metaseek --query "latest news" --time_range "week"
 ```
 
 ### Tor/Ahmia Search (Requires Proxy)
@@ -300,7 +300,7 @@ curl "http://127.0.0.1:8888/search?q=!github+rust-async&format=json"
 export ALL_PROXY=socks5h://127.0.0.1:9050
 
 # Search
-./target/release/searxng-rs --query "onion services" --engines "ahmia"
+./target/release/metaseek --query "onion services" --engines "ahmia"
 ```
 
 ---
@@ -309,13 +309,13 @@ export ALL_PROXY=socks5h://127.0.0.1:9050
 
 | Task | Command |
 |------|---------|
-| **CLI Search** | `./searxng-rs --query "term"` |
+| **CLI Search** | `./metaseek --query "term"` |
 | **CLI + Filter** | `--query "term" --categories "news"` |
 | **API Search** | `curl "http://host/search?q=term&format=json"` |
 | **API + Pagination** | `&pageno=2` |
 | **API + Engine Filter** | `&engines=google,duckduckgo` |
 | **API + Time Filter** | `&time_range=week` |
-| **MCP Stdio** | `./searxng-rs --mcp` |
+| **MCP Stdio** | `./metaseek --mcp` |
 | **MCP HTTP** | `POST /mcp` |
 | **Parse JSON** | `| jq '.results[]'` |
 | **Tor Search** | `export ALL_PROXY=socks5h://127.0.0.1:9050` |

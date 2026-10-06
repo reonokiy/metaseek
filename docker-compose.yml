@@ -17,10 +17,10 @@ services:
     networks:
       - searx-network
 
-  # SearXNG-RS Application Service
+  # Metaseek Application Service
   # Uses your existing Dockerfile
-  searxng-rs:
-    container_name: searxng-rs
+  metaseek:
+    container_name: metaseek
     build:
       context: .
       dockerfile: Dockerfile
@@ -33,7 +33,7 @@ services:
       - ALL_PROXY=socks5h://torproxy:9050
       
       # Optional: Instance configuration
-      - SEARXNG_BRANDING_NAME=SearXNG-RS
+      - SEARXNG_BRANDING_NAME=Metaseek
       - SEARXNG_BRANDING_TAGLINE=Privacy-respecting metasearch via Tor
     depends_on:
       - torproxy

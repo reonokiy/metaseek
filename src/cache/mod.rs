@@ -1,4 +1,4 @@
-//! Caching module for SearXNG-RS
+//! Caching module for Metaseek
 //!
 //! Provides various caching mechanisms for search results and engine data.
 
@@ -100,7 +100,7 @@ pub fn query_cache_key(query: &str, engines: &[String], page: u32, lang: &str) -
     hasher.update(page.to_string().as_bytes());
     hasher.update(lang.as_bytes());
 
-    format!("{:x}", hasher.finalize())
+    hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect::<String>()
 }
 
 #[cfg(test)]

@@ -25,7 +25,7 @@ use std::collections::HashMap;
 /// # Examples
 /// ```
 /// use std::collections::HashMap;
-/// use searxng_rs::engines::extract_api_key;
+/// use metaseek::engines::extract_api_key;
 /// let config_key = Some("config_key".to_string());
 /// let mut params = HashMap::new();
 /// params.insert("api_key".to_string(), serde_json::json!("param_key"));
@@ -76,7 +76,7 @@ pub fn extract_api_key_from_params(
 ///
 /// # Examples
 /// ```
-/// use searxng_rs::engines::generate_api_key_config_error;
+/// use metaseek::engines::generate_api_key_config_error;
 /// let msg = generate_api_key_config_error("linkedin_companies", "LinkedIn Companies");
 /// assert!(msg.contains("API key"));
 /// assert!(msg.contains("settings.yml"));
@@ -102,7 +102,7 @@ pub fn generate_api_key_config_error(engine_name: &str, config_name: &str) -> St
 ///
 /// # Examples
 /// ```
-/// use searxng_rs::engines::generate_api_key_config_error_with_instructions;
+/// use metaseek::engines::generate_api_key_config_error_with_instructions;
 /// let msg = generate_api_key_config_error_with_instructions(
 ///     "linkedin_companies",
 ///     "LinkedIn Companies",
@@ -150,7 +150,7 @@ pub fn generate_api_key_config_error_with_instructions(
 ///
 /// # Examples
 /// ```
-/// use searxng_rs::engines::api_key_is_configured;
+/// use metaseek::engines::api_key_is_configured;
 /// assert!(api_key_is_configured(&Some("key".to_string())));
 /// assert!(!api_key_is_configured(&None));
 /// assert!(!api_key_is_configured(&Some("".to_string())));
@@ -174,7 +174,7 @@ pub fn api_key_is_configured(config_api_key: &Option<String>) -> bool {
 ///
 /// # Examples
 /// ```
-/// use searxng_rs::engines::validate_api_key_present;
+/// use metaseek::engines::validate_api_key_present;
 /// let config_key = Some("key".to_string());
 /// let result = validate_api_key_present(&config_key, "test_engine", "Test Engine");
 /// assert!(result.is_ok());

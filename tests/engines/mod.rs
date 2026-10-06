@@ -11,8 +11,8 @@
 //! - To update a snapshot, run `cargo test --test engine_snapshots -- --nocapture`
 //!   and manually verify the live response, then save it to `tests/engines/snapshots/<engine>.json`.
 
-use searxng_rs::engines::{Engine, EngineRequest, EngineResponse, EngineResults, RequestParams};
-use searxng_rs::results::Result;
+use metaseek::engines::{Engine, EngineRequest, EngineResponse, EngineResults, RequestParams};
+use metaseek::results::Result;
 use std::fs;
 use std::path::PathBuf;
 

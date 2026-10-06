@@ -1,4 +1,4 @@
-//! SearXNG-RS: A privacy-respecting metasearch engine written in Rust
+//! Metaseek: A privacy-respecting metasearch engine written in Rust
 //!
 //! This is a complete rewrite of SearXNG (originally Python) in Rust,
 //! providing improved performance, memory safety, and type safety.

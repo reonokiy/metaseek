@@ -1,6 +1,6 @@
 //! Web server module
 //!
-//! Provides the HTTP API and web interface for SearXNG-RS.
+//! Provides the HTTP API and web interface for Metaseek.
 
 mod handlers;
 mod routes;

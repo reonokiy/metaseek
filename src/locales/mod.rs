@@ -1,4 +1,4 @@
-//! Localization module for SearXNG-RS
+//! Localization module for Metaseek
 //!
 //! Handles language/locale detection and translation.
 

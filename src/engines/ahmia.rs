@@ -38,8 +38,7 @@ impl Ahmia {
     fn build_client() -> Option<reqwest::Client> {
         let mut builder = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(15))
-            .danger_accept_invalid_certs(true) // Needed for .onion self-signed certs
-            .user_agent("Mozilla/5.0 (compatible; SearXNG-RS/1.0)");
+            .user_agent("Mozilla/5.0 (compatible; Metaseek/1.0)");
 
         // Check for proxy environment variables
         let proxy_url = std::env::var("ALL_PROXY")
@@ -245,7 +244,7 @@ impl Engine for Ahmia {
         let mut request = EngineRequest::get(&url);
         request.headers.insert(
             "User-Agent".to_string(),
-            "Mozilla/5.0 (compatible; SearXNG-RS)".to_string(),
+            "Mozilla/5.0 (compatible; Metaseek)".to_string(),
         );
 
         Ok(request)

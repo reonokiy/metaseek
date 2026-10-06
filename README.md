@@ -1,6 +1,8 @@
-# SearXNG-RS
+# Metaseek
 
-[![CI](https://github.com/sempervictus/searxng-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/sempervictus/searxng-rs/actions/workflows/ci.yml)
+Fork of [SearXNG-RS](https://github.com/sempervictus/searxng-rs), retaining its AGPL-3.0 license and upstream attribution. Existing `SEARXNG_*` environment variables remain supported.
+
+[![CI](https://github.com/reonokiy/metaseek/actions/workflows/ci.yml/badge.svg)](https://github.com/reonokiy/metaseek/actions/workflows/ci.yml)
 
 A privacy-respecting metasearch engine written in Rust. This project is a Rust-based implementation inspired by [SearXNG](https://github.com/searxng/searxng).
 
@@ -55,16 +57,16 @@ A privacy-respecting metasearch engine written in Rust. This project is a Rust-b
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Clone and build
-git clone https://github.com/sempervictus/searxng-rs.git
-cd searxng-rs
+git clone https://github.com/reonokiy/metaseek.git
+cd metaseek
 cargo build --release
 
 # Run server
-./target/release/searxng-rs
+./target/release/metaseek
 # Server starts at http://127.0.0.1:8888
 
 # One-off search (CLI mode)
-./target/release/searxng-rs --query "rust programming"
+./target/release/metaseek --query "rust programming"
 ```
 
 ## Features
@@ -99,7 +101,7 @@ cargo build --release
 
 ### Prerequisites
 
-- Rust 1.70+ (with Cargo)
+- Rust 1.95 (with Cargo; tested toolchain)
 
 ### Build
 
@@ -118,7 +120,7 @@ cargo build --release
 cargo run --release
 
 # Or run the binary directly
-./target/release/searxng-rs
+./target/release/metaseek
 ```
 
 The server starts at `http://127.0.0.1:8888` by default.
@@ -126,26 +128,27 @@ The server starts at `http://127.0.0.1:8888` by default.
 ### Docker
 
 ```bash
-docker run -p 8888:8888 ghcr.io/geoffsee/searxng-rs:latest
+docker build -t metaseek .
+docker run --rm -p 127.0.0.1:8888:8888 metaseek --bind 0.0.0.0 --port 8888
 ```
 
-Multi-arch images (amd64/arm64) are available on GHCR.
+Build the fork locally; no Metaseek container images have been published yet.
 
 ### Systemd Service
 
-Create `/etc/systemd/system/searxng-rs.service`:
+Create `/etc/systemd/system/metaseek.service`:
 
 ```ini
 [Unit]
-Description=SearXNG-RS Metasearch Engine
+Description=Metaseek Metasearch Engine
 After=network.target
 
 [Service]
 Type=simple
 User=searxng
-WorkingDirectory=/opt/searxng-rs
-EnvironmentFile=/etc/searxng/searxng-rs.env
-ExecStart=/opt/searxng-rs/target/release/searxng-rs
+WorkingDirectory=/opt/metaseek
+EnvironmentFile=/etc/searxng/metaseek.env
+ExecStart=/opt/metaseek/target/release/metaseek
 Restart=on-failure
 
 [Install]
@@ -155,8 +158,8 @@ WantedBy=multi-user.target
 Enable and start:
 
 ```bash
-sudo systemctl enable searxng-rs
-sudo systemctl start searxng-rs
+sudo systemctl enable metaseek
+sudo systemctl start metaseek
 ```
 
 ## Configuration
@@ -167,14 +170,14 @@ The application looks for `settings.yml` in these locations (in order):
 2. `./settings.yml`
 3. `./config/settings.yml`
 4. `/etc/searxng/settings.yml`
-5. `~/.config/searxng-rs/settings.yml`
+5. `~/.config/metaseek/settings.yml`
 
 ### Example Configuration
 
 ```yaml
 general:
   debug: false
-  instance_name: "SearXNG-RS"
+  instance_name: "Metaseek"
   enable_metrics: true
 
 search:
@@ -302,13 +305,13 @@ Execute a search without starting the server:
 
 ```bash
 # Basic query
-./target/release/searxng-rs --query "rust programming"
+./target/release/metaseek --query "rust programming"
 
 # With custom config
-./target/release/searxng-rs --config /etc/searxng/settings.yml --query "climate change"
+./target/release/metaseek --config /etc/searxng/settings.yml --query "climate change"
 
 # Pipe to jq for JSON processing
-./target/release/searxng-rs --query "ai news" | jq '.results[] | {title, url}'
+./target/release/metaseek --query "ai news" | jq '.results[] | {title, url}'
 ```
 
 Output is JSON to stdout, suitable for:
@@ -457,7 +460,7 @@ cargo clippy
 
 ## Feature Parity with SearXNG
 
-| Feature | searxng-rs | SearXNG |
+| Feature | metaseek | SearXNG |
 |---------|-----------|---------|
 | Total Engines | 51 | 215+ |
 | HTML Output |  |  |

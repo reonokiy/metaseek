@@ -1,11 +1,11 @@
 //! User agent generation
 
-use rand::seq::SliceRandom;
-use rand::Rng;
+use rand::seq::IndexedRandom;
+use rand::RngExt;
 
 /// Generate a random but realistic user agent string
 pub fn generate_user_agent() -> String {
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
 
     // Chrome versions (recent)
     let chrome_versions = [
@@ -36,7 +36,7 @@ pub fn generate_user_agent() -> String {
     let os = os_strings.choose(&mut rng).unwrap();
 
     // Browser choice
-    let browser_type: u8 = rng.gen_range(0..10);
+    let browser_type: u8 = rng.random_range(0..10);
 
     if browser_type < 6 {
         // Chrome (60% chance)

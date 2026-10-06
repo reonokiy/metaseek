@@ -1,6 +1,6 @@
 [Unit]
-Description=SearXNG-RS Privacy-Respecting Metasearch Engine
-Documentation=https://github.com/sempervictus/searxng-rs
+Description=Metaseek Privacy-Respecting Metasearch Engine
+Documentation=https://github.com/reonokiy/metaseek
 After=network.target
 Wants=network.target
 
@@ -41,8 +41,8 @@ NoNewPrivileges=yes
 # Restrict access to the filesystem to specific paths only.
 # The service can read the binary, config, and cache, but not the rest of the system.
 # Note: Adjust paths below if your binary or config locations differ.
-ReadOnlyPaths=/var/lib/searxng-rs /etc/searxng-rs /etc/default/searxng-rs.env
-ReadWritePaths=/var/cache/searxng-rs /tmp
+ReadOnlyPaths=/var/lib/metaseek /etc/metaseek /etc/default/metaseek.env
+ReadWritePaths=/var/cache/metaseek /tmp
 
 # -----------------------------------------------------------------------------
 # 2. Network Access
@@ -59,14 +59,14 @@ RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 # -----------------------------------------------------------------------------
 # 3. Environment & Configuration
 # -----------------------------------------------------------------------------
-# Load the environment file located at /etc/default/searxng-rs.env.
+# Load the environment file located at /etc/default/metaseek.env.
 # This file sets SEARXNG_PORT, SEARXNG_BIND_ADDRESS, SEARXNG_SECRET_KEY, etc.
-EnvironmentFile=-/etc/default/searxng-rs.env
+EnvironmentFile=-/etc/default/metaseek.env
 
 # Set the binary execution path explicitly.
 # Adjust this path if your release binary is located elsewhere.
-# Example: /usr/local/bin/searxng-rs or /opt/searxng-rs/target/release/searxng-rs
-ExecStart=/usr/local/bin/searxng-rs
+# Example: /usr/local/bin/metaseek or /opt/metaseek/target/release/metaseek
+ExecStart=/usr/local/bin/metaseek
 
 # Restart policy: Always try to restart if the service exits unexpectedly.
 # 'always' ensures the service is up. 'on-failure' only restarts on crash.
@@ -74,10 +74,10 @@ Restart=always
 RestartSec=5s
 
 # Standard output/logging handling.
-# Log to the systemd journal for easy viewing with 'journalctl -u searxng-rs'.
+# Log to the systemd journal for easy viewing with 'journalctl -u metaseek'.
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=searxng-rs
+SyslogIdentifier=metaseek
 
 # -----------------------------------------------------------------------------
 # 4. Runtime Limits & Resources

@@ -69,7 +69,7 @@ impl Engine for GitHub {
         // GitHub API requires User-Agent
         request
             .headers
-            .insert("User-Agent".to_string(), "SearXNG-RS/1.0".to_string());
+            .insert("User-Agent".to_string(), "Metaseek/1.0".to_string());
 
         // Support optional API key for higher rate limits
         // First check for API key in engine_data (runtime override)

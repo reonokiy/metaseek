@@ -143,7 +143,7 @@ impl Engine for Reuters {
         );
         request.headers.insert(
             "User-Agent".to_string(),
-            "Mozilla/5.0 (compatible; SearXNG-RS)".to_string(),
+            "Mozilla/5.0 (compatible; Metaseek)".to_string(),
         );
 
         Ok(request)

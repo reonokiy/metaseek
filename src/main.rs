@@ -220,7 +220,7 @@ async fn main() -> Result<()> {
 async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
     // Parse the query
     let parsed = ParsedQuery::parse(query_text);
-    
+
     // Build search query with default engine refs (all enabled engines)
     let engine_refs: Vec<EngineRef> = state
         .registry
@@ -228,15 +228,15 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
         .iter()
         .map(|name| EngineRef::new(name.as_str(), "general"))
         .collect();
-    
+
     let mut search_query = SearchQuery::from_parsed(parsed.clone(), engine_refs);
     search_query.pageno = 1;
     search_query.lang = "auto".to_string();
     search_query.safesearch = state.settings.search.safe_search;
-    
+
     // Execute search
     let results = state.search.execute(&search_query).await;
-    
+
     // Build result objects first to avoid type inference issues
     let ordered_results: Vec<serde_json::Value> = results
         .get_ordered_results()
@@ -269,7 +269,7 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
             })
         })
         .collect();
-    
+
     let answers: Vec<serde_json::Value> = results
         .get_answers()
         .iter()
@@ -281,13 +281,13 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
             })
         })
         .collect();
-    
+
     let suggestions: Vec<serde_json::Value> = results
         .get_suggestions()
         .iter()
         .map(|s| serde_json::json!({ "text": s.text }))
         .collect();
-    
+
     let infoboxes: Vec<serde_json::Value> = results
         .get_infoboxes()
         .iter()
@@ -301,7 +301,7 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
             })
         })
         .collect();
-    
+
     let unresponsive: Vec<serde_json::Value> = results
         .get_unresponsive()
         .iter()
@@ -312,7 +312,7 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
             })
         })
         .collect();
-    
+
     let engine_errors: Vec<serde_json::Value> = results
         .get_unresponsive()
         .iter()
@@ -324,7 +324,7 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
             })
         })
         .collect();
-    
+
     // Format results as JSON
     let json_output: serde_json::Value = serde_json::json!({
         "query": query_text.to_string(),
@@ -337,10 +337,9 @@ async fn run_cli_search(state: &AppState, query_text: &str) -> Result<()> {
         "unresponsive_engines": unresponsive,
         "engine_errors": engine_errors,
     });
-    
+
     // Print JSON to stdout
     println!("{}", serde_json::to_string_pretty(&json_output)?);
-    
+
     Ok(())
 }
-

@@ -21,12 +21,24 @@ impl HashPlugin {
             "sha256" | "sha-256" => {
                 let mut hasher = Sha256::new();
                 hasher.update(input.as_bytes());
-                Some(hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect::<String>())
+                Some(
+                    hasher
+                        .finalize()
+                        .iter()
+                        .map(|byte| format!("{byte:02x}"))
+                        .collect::<String>(),
+                )
             }
             "sha512" | "sha-512" => {
                 let mut hasher = Sha512::new();
                 hasher.update(input.as_bytes());
-                Some(hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect::<String>())
+                Some(
+                    hasher
+                        .finalize()
+                        .iter()
+                        .map(|byte| format!("{byte:02x}"))
+                        .collect::<String>(),
+                )
             }
             _ => None,
         }

@@ -48,7 +48,9 @@ impl Settings {
     /// Discover the configuration file, then apply environment overrides.
     pub fn load() -> Result<Self> {
         let env: HashMap<String, String> = std::env::vars().collect();
-        let explicit = env.get("METASEEK_SETTINGS_PATH").map(std::path::PathBuf::from);
+        let explicit = env
+            .get("METASEEK_SETTINGS_PATH")
+            .map(std::path::PathBuf::from);
         let mut paths = vec![
             std::path::PathBuf::from("metaseek.yml"),
             std::path::PathBuf::from("config/metaseek.yml"),
@@ -66,9 +68,8 @@ impl Settings {
     pub fn from_sources(path: Option<&Path>, env: HashMap<String, String>) -> Result<Self> {
         let mut builder = ::config::Config::builder();
         if let Some(path) = path {
-            builder = builder.add_source(
-                ::config::File::from(path).format(::config::FileFormat::Yaml),
-            );
+            builder =
+                builder.add_source(::config::File::from(path).format(::config::FileFormat::Yaml));
         }
         let aliases = [
             ("DEBUG", "GENERAL__DEBUG"),
@@ -95,10 +96,12 @@ impl Settings {
         // Keep values as strings: serde/config converts typed scalars without
         // accidentally turning numeric-looking secrets or branding into numbers.
         Ok(builder
-            .add_source(::config::Environment::with_prefix("METASEEK")
-                .prefix_separator("_")
-                .separator("__")
-                .source(Some(normalized)))
+            .add_source(
+                ::config::Environment::with_prefix("METASEEK")
+                    .prefix_separator("_")
+                    .separator("__")
+                    .source(Some(normalized)),
+            )
             .build()?
             .try_deserialize()?)
     }
@@ -433,7 +436,7 @@ pub struct RedisSettings {
 }
 
 /// Branding settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(default)]
 pub struct BrandingSettings {
     /// Brand name to display
@@ -444,17 +447,6 @@ pub struct BrandingSettings {
     pub tagline: Option<String>,
     /// Accent color for UI customization
     pub accent_color: Option<String>,
-}
-
-impl Default for BrandingSettings {
-    fn default() -> Self {
-        Self {
-            name: None,
-            logo: None,
-            tagline: None,
-            accent_color: None,
-        }
-    }
 }
 
 /// Generate a random secret key

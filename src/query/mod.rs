@@ -8,9 +8,9 @@
 //! - Safe search toggle: `!safesearch`
 //! - Time range: `!day`, `!week`, `!month`, `!year`
 
+use crate::engines::registry::get_category_map;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use crate::engines::registry::get_category_map;
 
 /// Parsed search query with extracted special syntax
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,7 +45,7 @@ impl ParsedQuery {
     /// Parse a raw query string
     pub fn parse(raw: &str) -> Self {
         let category_map = get_category_map();
-        
+
         let mut query = raw.to_string();
         let mut languages = Vec::new();
         let mut categories = Vec::new();
@@ -118,7 +118,7 @@ impl ParsedQuery {
         // This seems to handle a single ! at the start followed by space, which is not standard.
         // Standard is !! for redirect. Let's remove the single ! logic if it's not needed.
         // But to be safe, let's keep it and just add the !! handling.
-        
+
         // Re-check single ! at start (original logic)
         if query.starts_with('!') && query.chars().nth(1).map(|c| c == ' ').unwrap_or(true) {
             redirect_to_first = true;
@@ -294,7 +294,10 @@ mod tests {
         assert!(parsed.specific);
         // Should contain engines from both categories if they exist
         if parsed.categories.contains(&"images".to_string()) {
-            assert!(parsed.engines.iter().any(|e| e.contains("google_images") || e.contains("bing_images")));
+            assert!(parsed
+                .engines
+                .iter()
+                .any(|e| e.contains("google_images") || e.contains("bing_images")));
         }
         if parsed.categories.contains(&"tor".to_string()) {
             assert!(parsed.engines.contains(&"ahmia".to_string()));
@@ -321,8 +324,14 @@ mod tests {
         let parsed = ParsedQuery::parse("test !images !science");
         assert_eq!(parsed.query, "test");
         assert!(parsed.specific);
-        assert!(parsed.engines.contains(&"google_images".to_string()) || parsed.engines.contains(&"bing_images".to_string()));
-        assert!(parsed.engines.contains(&"arxiv".to_string()) || parsed.engines.contains(&"pubmed".to_string()));
+        assert!(
+            parsed.engines.contains(&"google_images".to_string())
+                || parsed.engines.contains(&"bing_images".to_string())
+        );
+        assert!(
+            parsed.engines.contains(&"arxiv".to_string())
+                || parsed.engines.contains(&"pubmed".to_string())
+        );
         assert!(parsed.categories.contains(&"images".to_string()));
         assert!(parsed.categories.contains(&"science".to_string()));
     }

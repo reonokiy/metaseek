@@ -51,7 +51,7 @@ impl AppState {
         let http_client = Arc::new(client.clone());
         let search = Arc::new(Search::new(client, registry.clone()));
         let templates = Arc::new(super::Templates::new()?);
-        
+
         // All configuration sources have already been merged into Settings.
         let name = settings.branding.name.clone();
         let logo = settings.branding.logo.clone();
@@ -147,7 +147,7 @@ impl AppState {
 /// Read a logo file and convert it to a base64 data URI
 fn read_logo_to_data_uri(path: &str) -> anyhow::Result<String> {
     use std::io::Read;
-    
+
     // Determine the file extension to set the correct MIME type
     let mime_type = if path.ends_with(".svg") {
         "image/svg+xml"
@@ -160,15 +160,15 @@ fn read_logo_to_data_uri(path: &str) -> anyhow::Result<String> {
     } else {
         "image/png" // default
     };
-    
+
     // Read the file content
     let mut file = std::fs::File::open(path)?;
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
-    
+
     // Convert to base64
     let base64_content = base64::engine::general_purpose::STANDARD.encode(&buffer);
-    
+
     // Construct the data URI
     Ok(format!("data:{};base64,{}", mime_type, base64_content))
 }

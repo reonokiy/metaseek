@@ -228,7 +228,9 @@ impl EngineResponse {
     pub fn is_js_gated(&self) -> bool {
         self.text.contains("/httpservice/retry/enablejs")
             || self.text.contains("emsg=SG_REL")
-            || self.text.contains("If you're having trouble accessing Google Search")
+            || self
+                .text
+                .contains("If you're having trouble accessing Google Search")
     }
 
     /// Check if the response is a usable result page that simply parsed to zero

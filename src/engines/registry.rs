@@ -4,10 +4,10 @@
 //! 1. `ALL_ENGINES`: Static list for `build.rs` to generate category maps.
 //! 2. `EngineRegistry`: Runtime registry holding actual engine instances and configs.
 
-use std::collections::HashMap;
-use std::sync::Arc;
 use super::traits::Engine;
 use crate::config::EngineConfig;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Static list of engines and categories for build.rs
 pub const ALL_ENGINES: &[(&str, &[&str])] = &[
@@ -45,11 +45,23 @@ pub const ALL_ENGINES: &[(&str, &[&str])] = &[
     ("ap_news", &["news", "media"]),
     ("fortune500", &["news", "business", "corporate"]),
     ("wsj", &["news", "business", "financial"]),
-    ("opencorporates", &["corporate", "business", "companies", "entities"]),
+    (
+        "opencorporates",
+        &["corporate", "business", "companies", "entities"],
+    ),
     ("imdb", &["movies", "corporate"]),
-    ("sec_edgar", &["corporate", "business", "financial", "sec", "filings"]),
-    ("crunchbase", &["corporate", "business", "startups", "investments"]),
-    ("linkedin_companies", &["corporate", "business", "companies"]),
+    (
+        "sec_edgar",
+        &["corporate", "business", "financial", "sec", "filings"],
+    ),
+    (
+        "crunchbase",
+        &["corporate", "business", "startups", "investments"],
+    ),
+    (
+        "linkedin_companies",
+        &["corporate", "business", "companies"],
+    ),
     ("semantic_scholar", &["science", "academic"]),
     ("openalex", &["science", "academic"]),
     ("crossref", &["science", "academic"]),
@@ -146,7 +158,7 @@ pub const ALL_ENGINES: &[(&str, &[&str])] = &[
     ("motleyfool_markets", &["news", "business"]),
     ("zacks_markets", &["news", "business"]),
     ("ycharts_markets", &["news", "business"]),
-    ("stocktwits_markets",  &["news", "business"]),
+    ("stocktwits_markets", &["news", "business"]),
     ("finviz_markets", &["news", "business"]),
     ("tradingview_markets", &["news", "business"]),
     ("investing_markets", &["news", "business"]),
@@ -173,13 +185,17 @@ impl EngineRegistry {
 
     pub fn register(&mut self, engine: Arc<dyn Engine + Send + Sync>, config: EngineConfig) {
         let name = engine.name().to_string();
-        let categories = engine.categories().iter().map(|s: &&str| s.to_string()).collect::<Vec<_>>();
+        let categories = engine
+            .categories()
+            .iter()
+            .map(|s: &&str| s.to_string())
+            .collect::<Vec<_>>();
 
         self.engines.insert(name.clone(), engine);
         self.configs.insert(name.clone(), config);
 
         for cat in categories {
-            self.categories.entry(cat).or_insert_with(Vec::new).push(name.clone());
+            self.categories.entry(cat).or_default().push(name.clone());
         }
     }
 
@@ -192,11 +208,17 @@ impl EngineRegistry {
     }
 
     pub fn get_engine(&self, name: &str) -> Option<&(dyn Engine + Send + Sync)> {
-        self.engines.get(name).map(|e: &Arc<dyn Engine + Send + Sync>| e.as_ref() as &(dyn Engine + Send + Sync))
+        self.engines
+            .get(name)
+            .map(|e: &Arc<dyn Engine + Send + Sync>| e.as_ref() as &(dyn Engine + Send + Sync))
     }
 
     pub fn get_engine_mut(&mut self, name: &str) -> Option<&mut (dyn Engine + Send + Sync)> {
-        self.engines.get_mut(name).map(|e: &mut Arc<dyn Engine + Send + Sync>| Arc::get_mut(e).unwrap() as &mut (dyn Engine + Send + Sync))
+        self.engines
+            .get_mut(name)
+            .map(|e: &mut Arc<dyn Engine + Send + Sync>| {
+                Arc::get_mut(e).unwrap() as &mut (dyn Engine + Send + Sync)
+            })
     }
 
     pub fn get_by_category(&self, category: &str) -> Vec<&(dyn Engine + Send + Sync)> {
@@ -205,7 +227,13 @@ impl EngineRegistry {
             .map(|names| {
                 names
                     .iter()
-                    .filter_map(|n: &String| self.engines.get(n).map(|e: &Arc<dyn Engine + Send + Sync>| e.as_ref() as &(dyn Engine + Send + Sync)))
+                    .filter_map(|n: &String| {
+                        self.engines
+                            .get(n)
+                            .map(|e: &Arc<dyn Engine + Send + Sync>| {
+                                e.as_ref() as &(dyn Engine + Send + Sync)
+                            })
+                    })
                     .collect()
             })
             .unwrap_or_default()
@@ -258,7 +286,7 @@ pub fn get_category_map() -> HashMap<String, Vec<String>> {
     for (name, cats) in ALL_ENGINES {
         for cat in *cats {
             map.entry(cat.to_string())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(name.to_string());
         }
     }

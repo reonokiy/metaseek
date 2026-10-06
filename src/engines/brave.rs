@@ -248,7 +248,10 @@ mod tests {
     #[test]
     fn test_brave_200_without_containers_is_a_parse_failure() {
         let brave = Brave::new();
-        let body = format!("<!DOCTYPE html><html><body>{}</body></html>", "x".repeat(30_000));
+        let body = format!(
+            "<!DOCTYPE html><html><body>{}</body></html>",
+            "x".repeat(30_000)
+        );
 
         let err = brave.response(response_with(200, &body)).unwrap_err();
         assert!(

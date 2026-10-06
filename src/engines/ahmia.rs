@@ -20,7 +20,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use url::Url;
 
 // Cache for tokens: (name_token, value_token, expiration_timestamp)
-static AHMIA_TOKEN_CACHE: LazyLock<DashMap<String, (String, String, u64)>> = LazyLock::new(DashMap::new);
+static AHMIA_TOKEN_CACHE: LazyLock<DashMap<String, (String, String, u64)>> =
+    LazyLock::new(DashMap::new);
 
 /// Ahmia Tor hidden service search engine
 pub struct Ahmia {
@@ -30,7 +31,8 @@ pub struct Ahmia {
 impl Ahmia {
     pub fn new() -> Self {
         Self {
-            base_url: "http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion".to_string(),
+            base_url: "http://juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion"
+                .to_string(),
         }
     }
 
@@ -72,7 +74,7 @@ impl Ahmia {
     fn parse_tokens(&self, html: &str) -> Option<(String, String)> {
         let document = Html::parse_document(html);
         let name_selector = Selector::parse(r#"input[type="hidden"][name]"#).ok()?;
-        
+
         let mut name_token = None;
         let mut value_token = None;
 
@@ -131,7 +133,8 @@ impl Ahmia {
             let url = if raw_url.starts_with("http://") || raw_url.starts_with("https://") {
                 let cleaned = if let Ok(parsed) = Url::parse(raw_url) {
                     if let Some(query) = parsed.query() {
-                        query.split('&')
+                        query
+                            .split('&')
                             .find(|p| p.starts_with("redirect_url="))
                             .and_then(|p| p.split('=').nth(1))
                             .map(|u| u.to_string())
@@ -268,7 +271,7 @@ impl Ahmia {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_secs();
-        
+
         let (name_token, value_token) = tokens.clone();
         AHMIA_TOKEN_CACHE.insert(
             "ahmia_tokens".to_string(),
@@ -288,7 +291,9 @@ mod tests {
         let params = RequestParams::new("search");
         let request = ahmia.request(&params).unwrap();
 
-        assert!(request.url.contains("juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion"));
+        assert!(request
+            .url
+            .contains("juhanurmihxlp77nkq76byazcldy2hlmovfu2epvl5ankdibsot4csyd.onion"));
         assert!(request.url.contains("search"));
     }
 
@@ -297,20 +302,29 @@ mod tests {
         // This test verifies that build_client returns Some if a proxy is set,
         // and None if no proxy is set.
         // It does NOT manipulate environment variables; it relies on the current shell state.
-        
+
         let client = Ahmia::build_client();
-        
+
         // If ALL_PROXY (or others) is set in the environment, client should be Some
         // If not set, client should be None
         // We simply assert that the function returns a value consistent with the env
-        let has_proxy = std::env::var("ALL_PROXY").or_else(|_| std::env::var("HTTP_PROXY"))
-            .or_else(|_| std::env::var("HTTPS_PROXY")).or_else(|_| std::env::var("SOCKS_PROXY"))
-            .map(|v| !v.trim().is_empty()).unwrap_or(false);
-            
+        let has_proxy = std::env::var("ALL_PROXY")
+            .or_else(|_| std::env::var("HTTP_PROXY"))
+            .or_else(|_| std::env::var("HTTPS_PROXY"))
+            .or_else(|_| std::env::var("SOCKS_PROXY"))
+            .map(|v| !v.trim().is_empty())
+            .unwrap_or(false);
+
         if has_proxy {
-            assert!(client.is_some(), "Client should be built when proxy env var is set");
+            assert!(
+                client.is_some(),
+                "Client should be built when proxy env var is set"
+            );
         } else {
-            assert!(client.is_none(), "Client should be None when no proxy env var is set");
+            assert!(
+                client.is_none(),
+                "Client should be None when no proxy env var is set"
+            );
         }
     }
 }

@@ -3,7 +3,10 @@ use std::collections::HashMap;
 use std::path::Path;
 
 fn environment(values: &[(&str, &str)]) -> HashMap<String, String> {
-    values.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+    values
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
 }
 
 #[test]
@@ -25,7 +28,8 @@ fn yaml_and_nested_environment_merge() {
             ("METASEEK_BRANDING_NAME", "00123"),
             ("METASEEK_SECRET_KEY", "0012345"),
         ]),
-    ).unwrap();
+    )
+    .unwrap();
     assert_eq!(settings.server.port, 9002);
     assert!(settings.general.debug);
     assert_eq!(settings.outgoing.request_timeout, 12.5);
@@ -41,7 +45,10 @@ fn invalid_typed_value_fails() {
 
 #[test]
 fn explicit_missing_file_fails() {
-    assert!(Settings::from_sources(Some(Path::new("/nonexistent/metaseek.yml")), HashMap::new()).is_err());
+    assert!(
+        Settings::from_sources(Some(Path::new("/nonexistent/metaseek.yml")), HashMap::new())
+            .is_err()
+    );
 }
 
 #[test]

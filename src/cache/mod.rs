@@ -100,7 +100,11 @@ pub fn query_cache_key(query: &str, engines: &[String], page: u32, lang: &str) -
     hasher.update(page.to_string().as_bytes());
     hasher.update(lang.as_bytes());
 
-    hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect::<String>()
+    hasher
+        .finalize()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>()
 }
 
 #[cfg(test)]

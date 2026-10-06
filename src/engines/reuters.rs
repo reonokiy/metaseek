@@ -137,10 +137,9 @@ impl Engine for Reuters {
         );
 
         let mut request = EngineRequest::get(&url);
-        request.headers.insert(
-            "Accept".to_string(),
-            "application/json".to_string(),
-        );
+        request
+            .headers
+            .insert("Accept".to_string(), "application/json".to_string());
         request.headers.insert(
             "User-Agent".to_string(),
             "Mozilla/5.0 (compatible; Metaseek)".to_string(),

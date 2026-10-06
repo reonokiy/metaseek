@@ -130,7 +130,10 @@ pub async fn handle_mcp_request(
         "notifications/initialized" => Ok(handle_initialized(id)),
         "tools/list" => Ok(handle_tools_list(id)),
         "tools/call" => handle_tools_call(state, id, request.params).await,
-        _ => Err(McpError::new(-32601, format!("Method not found: {}", request.method))),
+        _ => Err(McpError::new(
+            -32601,
+            format!("Method not found: {}", request.method),
+        )),
     }
 }
 
@@ -271,7 +274,7 @@ async fn handle_tools_call(
 
     // Build search query using simple constructor
     let search_query = SearchQuery::simple(search_params.query.clone());
-    
+
     // Execute search
     let results = state.app_state.search.execute(&search_query).await;
 
@@ -443,7 +446,7 @@ mod tests {
         let response = handle_initialize(None);
         assert!(response.result.is_some());
         let result = response.result.unwrap();
-        
+
         assert_eq!(result["protocolVersion"], "2024-11-05");
         assert_eq!(result["serverInfo"]["name"], "metaseek");
         assert!(result["capabilities"]["tools"].is_object());
@@ -454,7 +457,7 @@ mod tests {
         let response = handle_tools_list(None);
         assert!(response.result.is_some());
         let result = response.result.unwrap();
-        
+
         let tools = result.get("tools").unwrap().as_array().unwrap();
         assert_eq!(tools.len(), 1);
         assert_eq!(tools[0]["name"], "search");
@@ -466,7 +469,7 @@ mod tests {
     fn test_error_response_structure() {
         let error = McpError::new(-32601, "Method not found".to_string());
         let json = serde_json::to_string(&error).unwrap();
-        
+
         assert!(json.contains("-32601"));
         assert!(json.contains("Method not found"));
     }
